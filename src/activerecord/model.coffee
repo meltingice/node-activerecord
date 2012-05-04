@@ -4,7 +4,9 @@ exports.Model = class Model
   _dirty_data: {}
   _data: {}
 
+  primaryIndex: 'id'
   fields: []
+  adapters: ["sqlite"]
 
   @find: ->
     if arguments.length < 1 or arguments[0] is null
@@ -16,9 +18,28 @@ exports.Model = class Model
     return new @ if result.length is 0
     return result[0]
 
-  @findAll: ->
+  @findAll: (finder, cb = ->) ->
+    model = new @
 
-  constructor: (data = {}) ->
+    # Require the master adapter (first in list)
+    Adapter = require "#{__dirname}/adapters/#{model.adapters[0]}"
+    adapter = new Adapter(model.config.get(model.adapters[0]))
+
+    # Query the adapter
+    results = adapter.read finder, 
+      model.tableName(),
+      Array.prototype.slice.call(arguments, 0),
+      {primaryIndex: model.primaryIndex},
+      (rows) ->
+        resultSet = []
+        for row in rows
+          model = new @(row, false)
+          model.notify 'afterFind'
+          resultSet.push model
+
+        cb resultSet
+
+  constructor: (data = {}, tainted = true) ->
     @notify 'beforeInit'
 
     @_init_data = data
