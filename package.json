@@ -2,6 +2,12 @@
   "name": "activerecord",
   "description": "An ORM that supports multiple database systems (SQL/NoSQL) and ID generation middleware.",
   "version": "0.0.1",
+  "author": "Ryan LeFevre <meltingice8917@gmail.com> (http://meltingice.net)",
+  "homepage": "https://github.com/meltingice/node-activerecord",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meltingice/node-activerecord.git"
+  },
   "devDependencies": {
     "coffee-script": ">= 1.3.1",
     "sqlite3": ">= 2.1.3"
