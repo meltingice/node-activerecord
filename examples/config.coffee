@@ -1,4 +1,4 @@
-ActiveRecord = require '../src'
+ActiveRecord = require '../lib'
 
 module.exports = new ActiveRecord.Configuration
   sqlite:
