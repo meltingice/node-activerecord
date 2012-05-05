@@ -11,6 +11,12 @@ exports.Model = class Model
   fields: []
   adapters: ["sqlite"]
 
+  # Relationship configuration
+  _associations: {}
+  hasMany: -> []
+  hasOne: -> []
+  belongsTo: -> []
+
   @find: (args...) ->
     if arguments.length < 1 or arguments[0] is null
       return new @
@@ -47,6 +53,10 @@ exports.Model = class Model
 
         cb resultSet
 
+  @toAssociationName: (plural = false) ->
+    name = @name.toLowerCase()
+    if plural then name + "s" else name
+
   constructor: (data = {}, tainted = true) ->
     @notify 'beforeInit'
 
@@ -54,8 +64,7 @@ exports.Model = class Model
 
     for field in @fields
       do (field) =>
-        # Need to stick this in a closure in order to keep the field
-        # property the right value.
+        # Configure the getter/setters for the model fields
         Object.defineProperty @, field,
           get: -> @_data[field]
           set: (val) ->
@@ -74,6 +83,15 @@ exports.Model = class Model
         @_data[field] = @_init_data[field]
       else
         @_data[field] = null
+
+    for type in ['hasOne', 'belongsTo', 'hasMany']
+      for association in @[type]()
+        if Array.isArray association
+          association = association[0]
+
+        do (association) =>
+          assocName = association.toAssociationName(type is 'hasMany')
+          @[assocName] = (cb) -> @getAssociation association, cb
 
     if tainted
       @_dirty_data = @_init_data
@@ -141,7 +159,69 @@ exports.Model = class Model
           @notify 'afterDelete'
           cb()
 
+  #
+  # Relationships
+  #
+  hasOneExists: (model) -> @hasAssociation model, 'hasOne'
+  hasManyExists: (model) -> @hasAssociation model, 'hasMany'
+  belongsToExists: (model) -> @hasAssociation model, 'belongsTo'
+
+  hasAssociation: (model, types = ['hasOne', 'hasMany', 'belongsTo']) ->
+    types = [types] unless Array.isArray(types)
+
+    for type in types
+      for association in @[type]()
+        if Array.isArray(association)
+          return type if association[0].name is model.name
+        else
+          return type if association.name is model.name
+
+    return false
+
+  getAssociation: (model, cb) ->
+    type = @hasAssociation model
+    return cb(null) if type is false
+    return cb(@_associations[model.name]) if @_associations[model.name]?
+
+    config = @associationConfig model
+
+    internalCb = (value) =>
+      if type is "hasMany" and not Array.isArray(value)
+        value = [value]
+
+      @_associations[model.name] = value
+      cb(value)
+
+    if typeof @[config.loader] is "function"
+      @[config.loader](internalCb)
+    else if type in ["hasOne", "belongsTo"] and @hasField(config.foreignKey)
+      model.find @[config.foreignKey], internalCb
+    else
+      internalCb(new model())
+
+  associationConfig: (model) ->
+    type = @hasAssociation model
+
+    for assoc in @[type]
+      if Array.isArray(assoc)
+        config = assoc[1]
+      else
+        config = {}
+
+    defaults = {}
+
+    # Convert to model name
+    defaults.foreignKey = model.name.toLowerCase() + "_id"
+    defaults.loader = "load_#{model.toAssociationName(type is 'hasMany')}"
+    defaults.autoFks = true
+
+    defaults[key] = val for own key, val of config
+
+    return defaults
+
   isNew: -> @_new
+
+  hasField: (name) -> name in @fields
 
   tableName: ->
     return @table if @table

@@ -55,3 +55,25 @@ User.find 1, (user) ->
   user.name = "Bob"
   user.save()
 ```
+
+**Model Relations**
+
+``` coffeescript
+class User extends ActiveRecord.Model
+  config: config
+  fields: ['id', 'username', 'name']
+  hasMany: -> [
+    Message
+  ]
+
+class Message extends ActiveRecord.Model
+  config: config
+  fields: ['id', 'user_id', 'text']
+  belongsTo: -> [
+    User
+  ]
+
+Message.find 1, (message) ->
+  message.user (user) ->
+    console.log user.toJSON()
+```
