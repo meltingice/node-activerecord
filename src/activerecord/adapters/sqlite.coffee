@@ -1,4 +1,4 @@
-sqlite3 = require('sqlite3').verbose()
+sqlite3 = require('sqlite3')
 
 module.exports = class SQLiteAdapter
   MIN_SQL_SIZE: 15

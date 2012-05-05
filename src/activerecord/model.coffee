@@ -3,7 +3,7 @@ exports.Model = class Model
 
   _init_data: {}
   _data: {}
-  _dirty_data = {}
+  _dirty_data: {}
   _is_dirty: false
   _new: true
 
@@ -82,15 +82,15 @@ exports.Model = class Model
     @notify 'afterInit'
 
   save: (cb = ->) ->
-    return cb(false) unless @notify 'beforeSave'
-    return cb(@) unless @_is_dirty
+    return cb(true) unless @notify 'beforeSave'
+    return cb() unless @_is_dirty
 
     if @isNew()
       @notify "beforeCreate"
     else
       @notify "beforeUpdate"
 
-    return cb(false) unless @isValid()
+    return cb(true) unless @isValid()
 
     # TODO: ID generation middleware
 
@@ -101,11 +101,11 @@ exports.Model = class Model
       adapter = new Adapter(@config.get(adapter))
       adapter.write primaryIndex, 
         @tableName(), 
-        @_dirty_data, 
+        @_dirty_data,
         @isNew(),
         {primaryIndex: @primaryIndex},
         (results) =>
-          return cb(null) if results is null
+          return cb(true) if results is null
 
           @_data[@primaryIndex] = results.lastID if @isNew()
           @_init_data[@primaryIndex] = results.lastID
@@ -120,7 +120,7 @@ exports.Model = class Model
           @_new = false
 
           @notify "afterSave"
-          cb(@)
+          cb()
 
   isNew: -> @_new
 
