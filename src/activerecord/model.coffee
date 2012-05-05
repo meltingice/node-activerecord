@@ -122,6 +122,25 @@ exports.Model = class Model
           @notify "afterSave"
           cb()
 
+  delete: (cb) ->
+    return cb(true) unless @notify 'beforeDelete'
+
+    for adapter in @adapters
+      Adapter = require "#{__dirname}/adapters/#{adapter}"
+      adapter = new Adapter(@config.get(adapter))
+      adapter.delete @_data[@primaryIndex],
+        @tableName(),
+        {primaryIndex: @primaryIndex},
+        (result) =>
+          return cb(true) if result is null
+
+          @_data = {}
+          @_dirty_data = {}
+          @_data[field] = null for field in @fields
+
+          @notify 'afterDelete'
+          cb()
+
   isNew: -> @_new
 
   tableName: ->
@@ -144,3 +163,5 @@ exports.Model = class Model
   afterCreate: ->
   afterUpdate: ->
   afterSave: ->
+  beforeDelete: -> true
+  afterDelete: ->

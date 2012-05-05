@@ -26,3 +26,5 @@ db.serialize ->
           user.name = "Bob"
           user.save (err) ->
             console.log user.toJSON()
+
+            user.delete -> console.log user.toJSON()

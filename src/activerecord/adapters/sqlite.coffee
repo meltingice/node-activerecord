@@ -48,7 +48,17 @@ module.exports = class SQLiteAdapter
         else
           cb(@)
 
-  delete: (cb) ->
+  delete: (id, table, opts = {}, cb) ->
+    options = @getOptions(opts)
+
+    sqlClause = "DELETE FROM `#{table}` WHERE `#{options.primaryIndex}` = ?"
+    @db.serialize =>
+      @db.run sqlClause, id, (err, info...) ->
+        if err
+          console.log err
+          cb(null)
+        else
+          cb(@)
 
   insertSql: (table, data) ->
     columns = ['`id`']
