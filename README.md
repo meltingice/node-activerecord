@@ -47,3 +47,8 @@ user.save()
 ``` coffeescript
 User.find 1, (user) -> console.log user.toJSON()
 ```
+
+**Updating a Record**
+User.find 1, (user) ->
+  user.name = "Bob"
+  user.save()
