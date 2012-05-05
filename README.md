@@ -6,6 +6,21 @@ An ORM written in Coffeescript that supports multiple database systems, both SQL
 
 ## Examples
 
+**Configuration**
+
+``` coffeescript
+ActiveRecord = require '../src'
+
+module.exports = new ActiveRecord.Configuration
+  sqlite:
+    database: "#{__dirname}/test.db"
+  mysql:
+    host: 'localhost'
+    database: 'test'
+    user: 'test'
+    password: 'password'
+```
+
 **Model Definition**
 
 ``` coffeescript
