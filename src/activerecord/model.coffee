@@ -1,22 +1,30 @@
 exports.Model = class Model
   tableName: ""
+
   _init_data: {}
-  _dirty_data: {}
   _data: {}
+  _dirty_data = {}
+  _is_dirty: false
+  _new: true
 
   primaryIndex: 'id'
   fields: []
   adapters: ["sqlite"]
 
-  @find: ->
+  @find: (args...) ->
     if arguments.length < 1 or arguments[0] is null
       return new @
 
     # Use findAll's logic
-    result = @findAll.apply @, Array.prototype.slice.call(arguments, 0)
+    if typeof args[args.length - 1] is "function"
+      cb = args.pop()
+    else
+      cb = ->
 
-    return new @ if result.length is 0
-    return result[0]
+    finished = (results) -> cb(results[0])
+    args.push finished
+
+    result = @findAll.apply @, args
 
   @findAll: (finder, cb = ->) ->
     model = new @
@@ -30,7 +38,7 @@ exports.Model = class Model
       model.tableName(),
       Array.prototype.slice.call(arguments, 0),
       {primaryIndex: model.primaryIndex},
-      (rows) ->
+      (rows) =>
         resultSet = []
         for row in rows
           model = new @(row, false)
@@ -63,19 +71,76 @@ exports.Model = class Model
           configurable: true
 
       if @_init_data[field]
-        @[field] = @_init_data[field]
+        @_data[field] = @_init_data[field]
       else
-        @[field] = null
+        @_data[field] = null
+
+    if tainted
+      @_dirty_data = @_init_data
+      @_is_dirty = true
 
     @notify 'afterInit'
+
+  save: (cb = ->) ->
+    return cb(false) unless @notify 'beforeSave'
+    return cb(@) unless @_is_dirty
+
+    if @isNew()
+      @notify "beforeCreate"
+    else
+      @notify "beforeUpdate"
+
+    return cb(false) unless @isValid()
+
+    # TODO: ID generation middleware
+
+    primaryIndex = @_init_data[@primaryIndex]
+
+    for adapter in @adapters
+      Adapter = require "#{__dirname}/adapters/#{adapter}"
+      adapter = new Adapter(@config.get(adapter))
+      adapter.write primaryIndex, 
+        @tableName(), 
+        @_dirty_data, 
+        @isNew(),
+        {primaryIndex: @primaryIndex},
+        (results) =>
+          return cb(null) if results is null
+
+          @_data[@primaryIndex] = results.lastID if @isNew()
+          @_init_data[@primaryIndex] = results.lastID
+
+          if @isNew()
+            @notify "afterCreate"
+          else
+            @notify "afterUpdate"
+
+          @_dirty_data = {}
+          @_saved = true
+          @_new = false
+
+          @notify "afterSave"
+          cb(@)
+
+  isNew: -> @_new
 
   tableName: ->
     return @table if @table
     return @__proto__.constructor.name.toLowerCase() + "s"
 
+  toJSON: -> @_data
+
   # In the future, this will be used to support notifying plugins
   notify: (event) -> @[event]()
 
   # Callbacks. Override these.
+  isValid: -> true
   beforeInit: ->
   afterInit: ->
+  afterFind: ->
+  beforeSave: -> true
+  beforeCreate: ->
+  beforeUpdate: ->
+  afterCreate: ->
+  afterUpdate: ->
+  afterSave: ->

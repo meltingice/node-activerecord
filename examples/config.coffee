@@ -2,7 +2,7 @@ ActiveRecord = require '../src'
 
 module.exports = new ActiveRecord.Configuration
   sqlite:
-    database: ':memory:'
+    database: "#{__dirname}/test.db"
   mysql:
     host: 'localhost'
     database: 'test'
