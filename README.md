@@ -9,7 +9,7 @@ An ORM written in Coffeescript that supports multiple database systems, both SQL
 **Configuration**
 
 ``` coffeescript
-ActiveRecord = require '../src'
+ActiveRecord = require 'activerecord'
 
 module.exports = new ActiveRecord.Configuration
   sqlite:
@@ -24,7 +24,7 @@ module.exports = new ActiveRecord.Configuration
 **Model Definition**
 
 ``` coffeescript
-ActiveRecord = require '../src'
+ActiveRecord = require 'activerecord'
 config = require __dirname + "/config"
 
 # Note: uses sqlite3 by default
