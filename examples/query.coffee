@@ -5,7 +5,6 @@ class User extends ActiveRecord.Model
   config: config
   fields: ['id', 'username', 'name']
 
-  filterUsername: (username) -> username + " bob"
   isValid: ->
     return false if @username?.length is 0 or @name?.length is 0
     return true
@@ -20,10 +19,6 @@ db.serialize ->
     user = new User name: 'Ryan', username: 'meltingice'
     user.save (err) ->
       unless err
-        User.find 1, (user) ->
+        User.find "SELECT * FROM users WHERE id = ?", 1, (user) ->
           console.log user.toJSON()
-          user.name = "Bob"
-          user.save (err) ->
-            console.log user.toJSON()
-
-            user.delete -> console.log user.toJSON(); db.run "DROP TABLE users"
+          db.run "DROP TABLE users"

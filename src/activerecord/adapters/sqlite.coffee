@@ -11,7 +11,7 @@ module.exports = class SQLiteAdapter
   read: (finder, table, params = [], opts = {}, cb) ->
     options = @getOptions(opts)    
 
-    if typeof finder is "string" and finder.length <= @MIN_SQL_SIZE
+    if typeof finder is "string" and finder.length >= @MIN_SQL_SIZE
       sqlClause = finder
     else if Array.isArray finder
       sqlClause = "SELECT * FROM `#{table}` WHERE `#{options.primaryIndex}` IN (#{finder.join(',')})"

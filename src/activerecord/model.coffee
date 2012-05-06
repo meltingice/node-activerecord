@@ -1,12 +1,6 @@
 exports.Model = class Model
   tableName: ""
 
-  _init_data: {}
-  _data: {}
-  _dirty_data: {}
-  _is_dirty: false
-  _new: true
-
   primaryIndex: 'id'
   fields: []
   adapters: ["sqlite"]
@@ -32,8 +26,13 @@ exports.Model = class Model
 
     result = @findAll.apply @, args
 
-  @findAll: (finder, cb = ->) ->
+  @findAll: (finder, args...) ->
     model = new @
+
+    if typeof args[args.length - 1] is "function"
+      cb = args.pop()
+    else
+      cb = ->
 
     # Require the master adapter (first in list)
     Adapter = require "#{__dirname}/adapters/#{model.adapters[0]}"
@@ -42,7 +41,7 @@ exports.Model = class Model
     # Query the adapter
     results = adapter.read finder, 
       model.tableName(),
-      Array.prototype.slice.call(arguments, 0),
+      args,
       {primaryIndex: model.primaryIndex},
       (rows) =>
         resultSet = []
@@ -60,7 +59,11 @@ exports.Model = class Model
   constructor: (data = {}, tainted = true) ->
     @notify 'beforeInit'
 
+    @_data = {}
     @_init_data = data
+    @_dirty_data = {}
+    @_is_dirty = false
+    @_new = true
 
     for field in @fields
       do (field) =>
@@ -89,7 +92,7 @@ exports.Model = class Model
         if Array.isArray association
           association = association[0]
 
-        do (association) =>
+        do (association, type) =>
           assocName = association.toAssociationName(type is 'hasMany')
           @[assocName] = (cb) -> @getAssociation association, cb
 
@@ -211,8 +214,10 @@ exports.Model = class Model
     defaults = {}
 
     # Convert to model name
+    assocName = model.toAssociationName(type is 'hasMany')
+    assocName = assocName.charAt(0).toUpperCase() + assocName.slice(1)
     defaults.foreignKey = model.name.toLowerCase() + "_id"
-    defaults.loader = "load_#{model.toAssociationName(type is 'hasMany')}"
+    defaults.loader = "load#{assocName}"
     defaults.autoFks = true
 
     defaults[key] = val for own key, val of config

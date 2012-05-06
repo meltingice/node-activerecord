@@ -8,6 +8,9 @@ class User extends ActiveRecord.Model
     Message
   ]
 
+  loadMessages: (cb) ->
+    Message.findAll "SELECT * FROM messages WHERE user_id = ?", @id, cb
+
 class Message extends ActiveRecord.Model
   config: config
   fields: ['id', 'user_id', 'text']
@@ -26,8 +29,10 @@ db.serialize ->
     user.save (err) ->
       message = new Message user_id: user.id, text: "This is a test!"
       message.save (err) ->
-        message.user (user) ->
-          console.log user.toJSON()
-          
-          db.run "DROP TABLE messages"
-          db.run "DROP TABLE users"
+        message = new Message user_id: user.id, text: "Also a test!"
+        message.save (err) ->
+          user.messages (messages) ->
+            console.log message.toJSON() for message in messages
+            
+            db.run "DROP TABLE messages"
+            db.run "DROP TABLE users"
