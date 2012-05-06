@@ -20,10 +20,10 @@ db.serialize ->
     user = new User name: 'Ryan', username: 'meltingice'
     user.save (err) ->
       unless err
-        User.find 1, (user) ->
+        User.find 1, (err, user) ->
           console.log user.toJSON()
           user.name = "Bob"
           user.save (err) ->
             console.log user.toJSON()
 
-            user.delete -> console.log user.toJSON(); db.run "DROP TABLE users"
+            user.delete (err) -> console.log user.toJSON(); db.run "DROP TABLE users"

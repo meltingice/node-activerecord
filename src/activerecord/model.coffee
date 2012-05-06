@@ -20,11 +20,11 @@ exports.Model = class Model
     else
       cb = ->
 
-    finished = (results) => 
+    finished = (err, results) => 
       if results.length is 0
-        cb(new @)
+        cb(err, new @)
       else
-        cb(results[0])
+        cb(err, results[0])
 
     args.push finished
 
@@ -47,14 +47,16 @@ exports.Model = class Model
       model.tableName(),
       args,
       {primaryIndex: model.primaryIndex},
-      (rows) =>
+      (err, rows) =>
+        cb(err, rows) if err
+
         resultSet = []
         for row in rows
           model = new @(row, false)
           model.notify 'afterFind'
           resultSet.push model
 
-        cb resultSet
+        cb null, resultSet
 
   @toAssociationName: (plural = false) ->
     name = @name.toLowerCase()
@@ -108,8 +110,8 @@ exports.Model = class Model
     @notify 'afterInit'
 
   save: (cb = ->) ->
-    return cb(true) unless @notify 'beforeSave'
-    return cb() unless @_isDirty
+    return cb(null) unless @notify 'beforeSave'
+    return cb(null) unless @_isDirty
 
     if @isNew()
       @notify "beforeCreate"
@@ -130,8 +132,8 @@ exports.Model = class Model
         @_dirtyData,
         @isNew(),
         {primaryIndex: @primaryIndex},
-        (results) =>
-          return cb(true) if results is null
+        (err, results) =>
+          return cb(err) if err
 
           @_data[@primaryIndex] = results.lastID if @isNew()
           @_initData[@primaryIndex] = results.lastID
@@ -147,7 +149,7 @@ exports.Model = class Model
           @_new = false
 
           @notify "afterSave"
-          cb()
+          cb(null)
 
   delete: (cb) ->
     return cb(true) unless @notify 'beforeDelete'
@@ -158,8 +160,8 @@ exports.Model = class Model
       adapter.delete @_data[@primaryIndex],
         @tableName(),
         {primaryIndex: @primaryIndex},
-        (result) =>
-          return cb(true) if result is null
+        (err, result) =>
+          return cb(err) if err
 
           @_data = {}
           @_dirtyData = {}
@@ -167,7 +169,7 @@ exports.Model = class Model
           @_data[field] = null for field in @fields
 
           @notify 'afterDelete'
-          cb()
+          cb(null, result)
 
   #
   # Relationships
@@ -195,12 +197,14 @@ exports.Model = class Model
 
     config = @associationConfig model
 
-    internalCb = (value) =>
+    internalCb = (err, value) =>
+      return cb(err, value) if err
+
       if type is "hasMany" and not Array.isArray(value)
         value = [value]
 
       @_associations[model.name] = value
-      cb(value)
+      cb(null, value)
 
     if typeof @[config.loader] is "function"
       @[config.loader](internalCb)

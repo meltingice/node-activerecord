@@ -8,7 +8,7 @@ module.exports = class SQLiteAdapter
   constructor: (@config) ->
     @db = new sqlite3.Database @config.database
 
-  read: (finder, table, params = [], opts = {}, cb) ->
+  read: (finder, table, params, opts, cb) ->
     options = @getOptions(opts)    
 
     if typeof finder is "string" and finder.length >= @MIN_SQL_SIZE
@@ -22,12 +22,11 @@ module.exports = class SQLiteAdapter
     @db.serialize =>
       @db.all sqlClause, params, (err, rows) ->
         if err
-          console.log err
-          cb([])
+          cb(err, [])
         else
-          cb(rows)
+          cb(null, rows)
 
-  write: (id, table, data, newRecord, opts = {}, cb) ->
+  write: (id, table, data, newRecord, opts, cb) ->
     options = @getOptions(opts)
 
     params = []
@@ -43,22 +42,20 @@ module.exports = class SQLiteAdapter
     @db.serialize =>
       @db.run sqlClause, params, (err, info...) ->
         if err
-          console.log err
-          cb(null)
+          cb(err)
         else
-          cb(@)
+          cb(null, @)
 
-  delete: (id, table, opts = {}, cb) ->
+  delete: (id, table, opts, cb) ->
     options = @getOptions(opts)
 
     sqlClause = "DELETE FROM `#{table}` WHERE `#{options.primaryIndex}` = ?"
     @db.serialize =>
       @db.run sqlClause, id, (err, info...) ->
         if err
-          console.log err
-          cb(null)
+          cb(err)
         else
-          cb(@)
+          cb(null, @)
 
   insertSql: (table, data) ->
     columns = ['`id`']

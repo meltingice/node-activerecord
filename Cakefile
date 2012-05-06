@@ -2,6 +2,7 @@ fs = require 'fs'
 util = require 'util'
 coffee = require 'coffee-script'
 glob = require 'glob'
+{spawn} = require 'child_process'
 
 search = "**/*.coffee"
 inputDir = "src"

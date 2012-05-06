@@ -47,13 +47,13 @@ user.save()
 **Retreiving a Record**
 
 ``` coffeescript
-User.find 1, (user) -> console.log user.toJSON()
+User.find 1, (err, user) -> console.log user.toJSON()
 ```
 
 **Updating a Record**
 
 ``` coffeescript
-User.find 1, (user) ->
+User.find 1, (err, user) ->
   user.name = "Bob"
   user.save()
 ```
@@ -76,6 +76,6 @@ class Message extends ActiveRecord.Model
   ]
 
 Message.find 1, (message) ->
-  message.user (user) ->
+  message.user (err, user) ->
     console.log user.toJSON()
 ```

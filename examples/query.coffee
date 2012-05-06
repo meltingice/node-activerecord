@@ -19,6 +19,6 @@ db.serialize ->
     user = new User name: 'Ryan', username: 'meltingice'
     user.save (err) ->
       unless err
-        User.find "SELECT * FROM users WHERE id = ?", 1, (user) ->
+        User.find "SELECT * FROM users WHERE id = ?", 1, (err, user) ->
           console.log user.toJSON()
           db.run "DROP TABLE users"

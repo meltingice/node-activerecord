@@ -76,20 +76,20 @@ describe 'User', ->
 
   describe "#find()", ->
     it "should find a model given the primary ID", (done) ->
-      User.find 1, (user) ->
+      User.find 1, (err, user) ->
         user.should.be.an.instanceof User
         user.id.should.equal 1
         done()
 
     it "should find a model given a SQL query", (done) ->
-      User.find "SELECT * FROM users WHERE id = ?", 1, (user) ->
+      User.find "SELECT * FROM users WHERE id = ?", 1, (err, user) ->
         user.should.be.an.instanceof User
         user.id.should.equal 1
         done()
 
   describe "#findAll()", ->
     it "should find all models given an array of primary IDs", (done) ->
-      User.findAll [1, 2], (users) ->
+      User.findAll [1, 2], (err, users) ->
         users.should.be.an.instanceof Array
         users.length.should.equal 2
 
@@ -98,7 +98,7 @@ describe 'User', ->
         done()
 
     it "should find all models given a SQL query", (done) ->
-      User.findAll "SELECT * FROM users", (users) ->
+      User.findAll "SELECT * FROM users", (err, users) ->
         users.should.be.an.instanceof Array
         users.length.should.be.above 0
         users[0].should.be.an.instanceof User
@@ -106,7 +106,7 @@ describe 'User', ->
 
   describe "#update()", ->
     it "should update the existing model", (done) ->
-      User.find 1, (user) ->
+      User.find 1, (err, user) ->
         user.name = "newname"
         user.save (err) ->
           throw "did not save" if err
@@ -114,14 +114,14 @@ describe 'User', ->
           user.name.should.equal "newname"
 
           # Re-fetch user
-          User.find 1, (user) ->
+          User.find 1, (err, user) ->
             user.id.should.equal 1
             user.name.should.equal "newname"
             done()
 
   describe "#delete()", ->
     it "should delete the model from the DB", (done) ->
-      User.find 1, (user) ->
+      User.find 1, (err, user) ->
         user.delete (err) ->
           throw "did not delete" if err
 
@@ -130,7 +130,7 @@ describe 'User', ->
           user.should.have.property 'username', null
 
           # Attempt to re-fetch user
-          User.find 1, (user) ->
+          User.find 1, (err, user) ->
             user.should.be.an.instanceof User
             user.should.have.property 'id', null
             user.isLoaded().should.be.false

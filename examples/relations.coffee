@@ -31,7 +31,7 @@ db.serialize ->
       message.save (err) ->
         message = new Message user_id: user.id, text: "Also a test!"
         message.save (err) ->
-          user.messages (messages) ->
+          user.messages (err, messages) ->
             console.log message.toJSON() for message in messages
             
             db.run "DROP TABLE messages"
