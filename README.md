@@ -1,5 +1,7 @@
 # node-activerecord
 
+[![Build Status](https://secure.travis-ci.org/meltingice/node-activerecord.png?branch=master)](http://travis-ci.org/meltingice/node-activerecord)
+
 An ORM written in Coffeescript that supports multiple database systems, both SQL and NoSQL, as well as ID generation middleware. It is fully extendable to add new database systems and plugins.
 
 **Note:** this project is new and is not finished yet. There is still a lot of functionality to add.
