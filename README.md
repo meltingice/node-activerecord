@@ -6,6 +6,33 @@ An ORM written in Coffeescript that supports multiple database systems, both SQL
 
 **Note:** this project is new and is not finished yet. There is still a lot of functionality to add.
 
+## Install
+
+node-activerecord is available in npm:
+
+```
+npm install activerecord
+```
+
+Installing node-activerecord will not automatically install the required libraries for every adapter since this could easily make the library very bloated and dependent on things you may or may not need.
+
+You can use npm to install the required libraries for each adapter:
+
+<table>
+  <tr>
+    <th>Adapter</th>
+    <th>Library</th>
+  </tr>
+  <tr>
+    <td>sqlite</td>
+    <td>sqlite3</td>
+  </tr>
+  <tr>
+    <td>mysql</td>
+    <td>mysql</td>
+  </tr>
+</table>
+
 ## Examples
 
 **Configuration**
@@ -47,7 +74,16 @@ user.save()
 **Retreiving a Record**
 
 ``` coffeescript
+# Find by primary ID
 User.find 1, (err, user) -> console.log user.toJSON()
+
+# Find multiple by primary ID
+User.findAll [1, 2], (err, users) ->
+  console.log user.toJSON() for user in users
+
+# Find by custom query
+User.find "SELECT * FROM users WHERE id < ?", 5, (err, user) ->
+  console.log user.toJSON()
 ```
 
 **Updating a Record**
@@ -55,7 +91,14 @@ User.find 1, (err, user) -> console.log user.toJSON()
 ``` coffeescript
 User.find 1, (err, user) ->
   user.name = "Bob"
-  user.save()
+  user.save (err) -> console.log "updated!"
+```
+
+**Deleting a Record**
+
+``` coffeescript
+User.find 1, (err, user) ->
+  user.delete (err) -> console.log "deleted!"
 ```
 
 **Model Relations**
