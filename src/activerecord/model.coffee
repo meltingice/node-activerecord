@@ -12,8 +12,7 @@ exports.Model = class Model
   belongsTo: -> []
 
   @find: (args...) ->
-    if arguments.length < 1 or arguments[0] is null
-      return new @
+    return if arguments.length < 1 or arguments[0] is null
 
     # Use findAll's logic
     if typeof args[args.length - 1] is "function"
@@ -21,10 +20,15 @@ exports.Model = class Model
     else
       cb = ->
 
-    finished = (results) -> cb(results[0])
+    finished = (results) => 
+      if results.length is 0
+        cb(new @)
+      else
+        cb(results[0])
+
     args.push finished
 
-    result = @findAll.apply @, args
+    @findAll.apply @, args
 
   @findAll: (finder, args...) ->
     model = new @
@@ -60,9 +64,9 @@ exports.Model = class Model
     @notify 'beforeInit'
 
     @_data = {}
-    @_init_data = data
-    @_dirty_data = {}
-    @_is_dirty = false
+    @_initData = data
+    @_dirtyData = {}
+    @_isDirty = false
     @_new = true
 
     for field in @fields
@@ -77,13 +81,14 @@ exports.Model = class Model
                 val = @[filterFunc](val)
 
               @_data[field] = val
-              @_dirty_data[field] = val
+              @_dirtyData[field] = val
+              @_isDirty = true
 
           enumerable: true
           configurable: true
 
-      if @_init_data[field]
-        @_data[field] = @_init_data[field]
+      if @_initData[field]
+        @_data[field] = @_initData[field]
       else
         @_data[field] = null
 
@@ -97,14 +102,14 @@ exports.Model = class Model
           @[assocName] = (cb) -> @getAssociation association, cb
 
     if tainted
-      @_dirty_data = @_init_data
-      @_is_dirty = true
+      @_dirtyData = @_initData
+      @_isDirty = true
 
     @notify 'afterInit'
 
   save: (cb = ->) ->
     return cb(true) unless @notify 'beforeSave'
-    return cb() unless @_is_dirty
+    return cb() unless @_isDirty
 
     if @isNew()
       @notify "beforeCreate"
@@ -115,28 +120,29 @@ exports.Model = class Model
 
     # TODO: ID generation middleware
 
-    primaryIndex = @_init_data[@primaryIndex]
+    primaryIndex = @_initData[@primaryIndex]
 
     for adapter in @adapters
       Adapter = require "#{__dirname}/adapters/#{adapter}"
       adapter = new Adapter(@config.get(adapter))
       adapter.write primaryIndex, 
         @tableName(), 
-        @_dirty_data,
+        @_dirtyData,
         @isNew(),
         {primaryIndex: @primaryIndex},
         (results) =>
           return cb(true) if results is null
 
           @_data[@primaryIndex] = results.lastID if @isNew()
-          @_init_data[@primaryIndex] = results.lastID
+          @_initData[@primaryIndex] = results.lastID
 
           if @isNew()
             @notify "afterCreate"
           else
             @notify "afterUpdate"
 
-          @_dirty_data = {}
+          @_dirtyData = {}
+          @_isDirty = false
           @_saved = true
           @_new = false
 
@@ -156,7 +162,8 @@ exports.Model = class Model
           return cb(true) if result is null
 
           @_data = {}
-          @_dirty_data = {}
+          @_dirtyData = {}
+          @_isDirty = false
           @_data[field] = null for field in @fields
 
           @notify 'afterDelete'
@@ -225,6 +232,8 @@ exports.Model = class Model
     return defaults
 
   isNew: -> @_new
+  isLoaded: -> not @isNew()
+  isDirty: -> @_isDirty
 
   hasField: (name) -> name in @fields
 
@@ -234,19 +243,35 @@ exports.Model = class Model
 
   toJSON: -> @_data
 
-  # In the future, this will be used to support notifying plugins
-  notify: (event) -> @[event]()
+  # In the future, this will be used to support notifying plugins as well
+  notify: (event) ->
+    result = @[event]()
+    result and @["_#{event}"]()
+
+  # Internal callbacks. Don't override these.
+  _isValid: -> true
+  _beforeInit: -> true
+  _afterInit: -> true
+  _afterFind: -> @_new = false; true
+  _beforeSave: -> true
+  _beforeCreate: -> true
+  _beforeUpdate: -> true
+  _afterCreate: -> true
+  _afterUpdate: -> true
+  _afterSave: -> true
+  _beforeDelete: -> true
+  _afterDelete: -> true
 
   # Callbacks. Override these.
   isValid: -> true
-  beforeInit: ->
-  afterInit: ->
-  afterFind: ->
+  beforeInit: -> true
+  afterInit: -> true
+  afterFind: -> true
   beforeSave: -> true
-  beforeCreate: ->
-  beforeUpdate: ->
-  afterCreate: ->
-  afterUpdate: ->
-  afterSave: ->
+  beforeCreate: -> true
+  beforeUpdate: -> true
+  afterCreate: -> true
+  afterUpdate: -> true
+  afterSave: -> true
   beforeDelete: -> true
-  afterDelete: ->
+  afterDelete: -> true
