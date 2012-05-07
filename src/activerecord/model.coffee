@@ -2,6 +2,9 @@ exports.Model = class Model
   tableName: ""
 
   primaryIndex: 'id'
+  idMiddleware: 'sql' # default
+  idMiddlewareOptions: {}
+
   fields: []
   adapters: ["sqlite"]
 
@@ -120,36 +123,61 @@ exports.Model = class Model
 
     return cb(true) unless @isValid()
 
-    # TODO: ID generation middleware
+    if @isNew() and @idMiddleware?
+      middleware = require "#{__dirname}/middleware/#{@idMiddleware}"
+      mConfig = @config.get('middleware')
+      if mConfig?[@idMiddleware]
+        mOpts = mConfig[@idMiddleware]
+      else
+        mOpts = {}
 
-    primaryIndex = @_initData[@primaryIndex]
+      m = new middleware(mOpts)
 
-    for adapter in @adapters
-      Adapter = require "#{__dirname}/adapters/#{adapter}"
-      adapter = new Adapter(@config.get(adapter))
-      adapter.write primaryIndex, 
-        @tableName(), 
-        @_dirtyData,
-        @isNew(),
-        {primaryIndex: @primaryIndex},
-        (err, results) =>
-          return cb(err) if err
+    preID = (err, id) =>
+      if id isnt null
+        @_data[@primaryIndex] = id
+        @_initData[@primaryIndex] = id
 
-          @_data[@primaryIndex] = results.lastID if @isNew()
-          @_initData[@primaryIndex] = results.lastID
+      primaryIndex = @_initData[@primaryIndex]
 
-          if @isNew()
-            @notify "afterCreate"
-          else
-            @notify "afterUpdate"
+      for adapter in @adapters
+        Adapter = require "#{__dirname}/adapters/#{adapter}"
+        adapter = new Adapter(@config.get(adapter))
+        adapter.write primaryIndex, 
+          @tableName(), 
+          @_dirtyData,
+          @isNew(),
+          {primaryIndex: @primaryIndex},
+          (err, results) =>
+            return cb(err) if err
 
-          @_dirtyData = {}
-          @_isDirty = false
-          @_saved = true
-          @_new = false
+            if @isNew() and @idMiddleware? and middleware.supports.afterWrite
+              m.afterWrite @idMiddlewareOptions, results, (err, id) =>
+                postID(err, id, results)
+            else
+              postID(null, null, results)
 
-          @notify "afterSave"
-          cb(null)
+    postID = (err, id, results) =>
+      @_data[@primaryIndex] = id if id isnt null
+      @_initData[@primaryIndex] = @_data[@primaryIndex]
+
+      if @isNew()
+        @notify "afterCreate"
+      else
+        @notify "afterUpdate"
+
+      @_dirtyData = {}
+      @_isDirty = false
+      @_saved = true
+      @_new = false
+
+      @notify "afterSave"
+      cb(null)
+
+    if @isNew() and @idMiddleware? and middleware.supports.beforeWrite
+      m.beforeWrite @idMiddlewareOptions, preID
+    else
+      preID(null, null)
 
   delete: (cb) ->
     return cb(true) unless @notify 'beforeDelete'
