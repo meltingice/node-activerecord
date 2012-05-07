@@ -113,71 +113,72 @@ exports.Model = class Model
     @notify 'afterInit'
 
   save: (cb = ->) ->
-    return cb(null) unless @notify 'beforeSave'
     return cb(null) unless @_isDirty
 
-    if @isNew()
-      @notify "beforeCreate"
-    else
-      @notify "beforeUpdate"
-
-    return cb(true) unless @isValid()
-
-    if @isNew() and @idMiddleware?
-      middleware = require "#{__dirname}/middleware/#{@idMiddleware}"
-      mConfig = @config.get('middleware')
-      if mConfig?[@idMiddleware]
-        mOpts = mConfig[@idMiddleware]
-      else
-        mOpts = {}
-
-      m = new middleware(mOpts)
-
-    preID = (err, id) =>
-      if id isnt null
-        @_data[@primaryIndex] = id
-        @_initData[@primaryIndex] = id
-
-      primaryIndex = @_initData[@primaryIndex]
-
-      for adapter in @adapters
-        Adapter = require "#{__dirname}/adapters/#{adapter}"
-        adapter = new Adapter(@config.get(adapter))
-        adapter.write primaryIndex, 
-          @tableName(), 
-          @_dirtyData,
-          @isNew(),
-          {primaryIndex: @primaryIndex},
-          (err, results) =>
-            return cb(err) if err
-
-            if @isNew() and @idMiddleware? and middleware.supports.afterWrite
-              m.afterWrite @idMiddlewareOptions, results, (err, id) =>
-                postID(err, id, results)
-            else
-              postID(null, null, results)
-
-    postID = (err, id, results) =>
-      @_data[@primaryIndex] = id if id isnt null
-      @_initData[@primaryIndex] = @_data[@primaryIndex]
-
+    @notify 'beforeSave', (res) =>
+      cb(null) unless res
+    
       if @isNew()
-        @notify "afterCreate"
+        @notify "beforeCreate"
       else
-        @notify "afterUpdate"
+        @notify "beforeUpdate"
 
-      @_dirtyData = {}
-      @_isDirty = false
-      @_saved = true
-      @_new = false
+      return cb(true) unless @isValid()
 
-      @notify "afterSave"
-      cb(null)
+      if @isNew() and @idMiddleware?
+        middleware = require "#{__dirname}/middleware/#{@idMiddleware}"
+        mConfig = @config.get('middleware')
+        if mConfig?[@idMiddleware]
+          mOpts = mConfig[@idMiddleware]
+        else
+          mOpts = {}
 
-    if @isNew() and @idMiddleware? and middleware.supports.beforeWrite
-      m.beforeWrite @idMiddlewareOptions, preID
-    else
-      preID(null, null)
+        m = new middleware(mOpts)
+
+      preID = (err, id) =>
+        if id isnt null
+          @_data[@primaryIndex] = id
+          @_initData[@primaryIndex] = id
+
+        primaryIndex = @_initData[@primaryIndex]
+
+        for adapter in @adapters
+          Adapter = require "#{__dirname}/adapters/#{adapter}"
+          adapter = new Adapter(@config.get(adapter))
+          adapter.write primaryIndex, 
+            @tableName(), 
+            @_dirtyData,
+            @isNew(),
+            {primaryIndex: @primaryIndex},
+            (err, results) =>
+              return cb(err) if err
+
+              if @isNew() and @idMiddleware? and middleware.supports.afterWrite
+                m.afterWrite @idMiddlewareOptions, results, (err, id) =>
+                  postID(err, id, results)
+              else
+                postID(null, null, results)
+
+      postID = (err, id, results) =>
+        @_data[@primaryIndex] = id if id isnt null
+        @_initData[@primaryIndex] = @_data[@primaryIndex]
+
+        if @isNew()
+          @notify "afterCreate"
+        else
+          @notify "afterUpdate"
+
+        @_dirtyData = {}
+        @_isDirty = false
+        @_saved = true
+        @_new = false
+
+        @notify "afterSave", => cb(null)
+
+      if @isNew() and @idMiddleware? and middleware.supports.beforeWrite
+        m.beforeWrite @idMiddlewareOptions, preID
+      else
+        preID(null, null)
 
   delete: (cb) ->
     return cb(true) unless @notify 'beforeDelete'
@@ -263,6 +264,68 @@ exports.Model = class Model
 
     return defaults
 
+  saveBelongsToAssociations: (cb) ->
+    cb(true) if @belongsTo().length is 0
+
+    doneCount = 0
+    done = => 
+      doneCount++
+      cb(true) if doneCount is @belongsTo().length
+
+    for belongsTo in @belongsTo()
+      unless @_associations[belongsTo.name]
+        done(); continue
+
+      obj = @_associations[belongsTo.name]
+      obj.save (err) =>
+        config = @associationConfig(belongsTo)
+
+        if @hasField config.foreignKey
+          @_data[config.foreignKey] = obj[obj.primaryIndex]
+
+        done()
+
+  saveHasSomeAssociations: (cb) ->
+    cb(true) if @hasOne().length is 0 and @hasMany().length is 0
+
+    finishCount = @hasOne().length
+    for hasMany in @hasMany()
+      if @_associations[hasMany.name]
+        finishCount += @_associations[hasMany.name].length
+      else
+        finishCount++
+
+    doneCount = 0
+    done = =>
+      doneCount++
+      cb(true) if doneCount is finishCount
+
+    for hasOne in @hasOne()
+      unless @_associations[hasOne.name]
+        done(); continue
+
+      obj = @_associations[hasOne.name]
+      obj.save (err) =>
+        config = @associationConfig(hasOne)
+
+        if @hasField config.foreignKey
+          @_data[config.foreignKey] = obj[obj.primaryIndex]
+
+        done()
+
+    for hasMany in @hasMany()
+      unless @_associations[hasMany.name]
+        done(); continue
+
+      for obj in @_associations[hasMany.name]
+        obj.save (err) =>
+          config = @associationConfig hasMany
+
+          if @hasField config.foreignKey
+            obj[config.foreignKey] = @[@primaryIndex]
+
+          done()
+
   isNew: -> @_new
   isLoaded: -> not @isNew()
   isDirty: -> @_isDirty
@@ -276,21 +339,27 @@ exports.Model = class Model
   toJSON: -> @_data
 
   # In the future, this will be used to support notifying plugins as well
-  notify: (event) ->
-    result = @[event]()
-    result and @["_#{event}"]()
+  notify: (event, cb = null) ->
+    if cb
+      # async
+      @[event] (result1) =>
+        @["_#{event}"] (result2) =>
+          cb result1 and result2
+    else
+      # sync
+      @[event]() and @["_#{event}"]()
 
   # Internal callbacks. Don't override these.
   _isValid: -> true
   _beforeInit: -> true
   _afterInit: -> true
   _afterFind: -> @_new = false; true
-  _beforeSave: -> true
+  _beforeSave: (c) -> @saveBelongsToAssociations(c)
   _beforeCreate: -> true
   _beforeUpdate: -> true
   _afterCreate: -> true
   _afterUpdate: -> true
-  _afterSave: -> true
+  _afterSave: (c) -> @saveHasSomeAssociations(c)
   _beforeDelete: -> true
   _afterDelete: -> true
 
@@ -299,11 +368,11 @@ exports.Model = class Model
   beforeInit: -> true
   afterInit: -> true
   afterFind: -> true
-  beforeSave: -> true
+  beforeSave: (c) -> c(true)
   beforeCreate: -> true
   beforeUpdate: -> true
   afterCreate: -> true
   afterUpdate: -> true
-  afterSave: -> true
+  afterSave: (c) -> c(true)
   beforeDelete: -> true
   afterDelete: -> true
