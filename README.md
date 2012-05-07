@@ -41,6 +41,8 @@ You can use npm to install the required libraries for each adapter:
 
 **Configuration**
 
+By default, ActiveRecord assumes SQL ID middleware. This means it checks for the last generated auto-incremenet ID on the primary key.
+
 ``` coffeescript
 ActiveRecord = require 'activerecord'
 
@@ -52,6 +54,9 @@ module.exports = new ActiveRecord.Configuration
     database: 'test'
     user: 'test'
     password: 'password'
+  middleware:
+    redis:
+      host: 'localhost'
 ```
 
 **Model Definition**
@@ -125,4 +130,16 @@ class Message extends ActiveRecord.Model
 Message.find 1, (message) ->
   message.user (err, user) ->
     console.log user.toJSON()
+```
+
+**Non-SQL Middleware**
+
+``` coffeescript
+class User extends ActiveRecord.Model
+  config: config
+  idMiddleware: 'redis'
+  idMiddlewareOptions:
+    key: 'users:id'
+
+  fields: ['id', 'username', 'name']
 ```
