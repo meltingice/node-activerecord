@@ -66,7 +66,7 @@ You can also use npm to install the required libraries for any ID generation mid
 
 **Configuration**
 
-By default, ActiveRecord assumes SQL ID middleware. This means it checks for the last generated auto-incremenet ID on the primary key.
+By default, ActiveRecord assumes SQL ID middleware. This means it checks for the last generated auto-increment ID on the primary key.
 
 ``` coffeescript
 ActiveRecord = require 'activerecord'
