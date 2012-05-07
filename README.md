@@ -2,9 +2,9 @@
 
 [![Build Status](https://secure.travis-ci.org/meltingice/node-activerecord.png?branch=master)](http://travis-ci.org/meltingice/node-activerecord)
 
-An ORM written in Coffeescript that supports multiple database systems, both SQL and NoSQL, as well as ID generation middleware. It is fully extendable to add new database systems and plugins.
+An ORM written in Coffeescript that supports multiple database systems (SQL, NoSQL, and even REST), as well as ID generation middleware. It is fully extendable to add new database systems and plugins.
 
-**Note:** this project is new and is not finished yet. There is still a lot of functionality to add.
+**Note:** this project is new and is still evolving rapidly. A lot is done, but there is still a lot to do.
 
 ## Install
 
@@ -21,7 +21,7 @@ You can use npm to install the required libraries for each adapter:
 <table>
   <tr>
     <th>Adapter</th>
-    <th>Library</th>
+    <th>Libraries</th>
   </tr>
   <tr>
     <td>sqlite</td>
@@ -30,6 +30,10 @@ You can use npm to install the required libraries for each adapter:
   <tr>
     <td>mysql</td>
     <td>mysql</td>
+  </tr>
+  <tr>
+    <td>REST</td>
+    <td>restler</td>
   </tr>
 </table>
 
