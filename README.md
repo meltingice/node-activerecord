@@ -16,6 +16,8 @@ npm install activerecord
 
 Installing node-activerecord will not automatically install the required libraries for every adapter since this could easily make the library very bloated and dependent on things you may or may not need.
 
+### Adapter Libraries
+
 You can use npm to install the required libraries for each adapter:
 
 <table>
@@ -34,6 +36,25 @@ You can use npm to install the required libraries for each adapter:
   <tr>
     <td>REST</td>
     <td>restler</td>
+  </tr>
+</table>
+
+### ID Middleware Libraries
+
+You can also use npm to install the required libraries for any ID generation middleware:
+
+<table>
+  <tr>
+    <th>Middleware</th>
+    <th>Libraries</th>
+  </tr>
+  <tr>
+    <td>sql</td>
+    <td><i>none</i></td>
+  </tr>
+  <tr>
+    <td>redis</td>
+    <td>redis</td>
   </tr>
 </table>
 
