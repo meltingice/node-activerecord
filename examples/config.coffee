@@ -8,6 +8,9 @@ module.exports = new ActiveRecord.Configuration
     database: 'test'
     user: 'test'
     password: 'password'
+  redis:
+    host: null
+    port: null
   rest:
     url: 'https://api.heello.com'
     version: 1
