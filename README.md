@@ -34,6 +34,10 @@ You can use npm to install the required libraries for each adapter:
     <td>mysql</td>
   </tr>
   <tr>
+    <td>redis</td>
+    <td>redis</td>
+  </tr>
+  <tr>
     <td>REST</td>
     <td>restler</td>
   </tr>
