@@ -62,6 +62,26 @@ You can also use npm to install the required libraries for any ID generation mid
   </tr>
 </table>
 
+### Built-In Plugins
+
+<table>
+  <tr>
+    <th>Plugin</th>
+    <th>Enabled by Default</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>json</td>
+    <td>true</td>
+    <td>Allows conversion of a model to a simple JS object and offers field protection</td>
+  </tr>
+  <tr>
+    <td>logger</td>
+    <td>false</td>
+    <td>A verbose logger that outputs significant logging data to the console</td>
+  </tr>
+</table>
+
 ## Examples
 
 **Configuration**
