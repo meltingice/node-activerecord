@@ -192,7 +192,7 @@ class User extends ActiveRecord.Model
 **Plugins**
 
 ``` coffeescript
-class Logger extends ActiveRecord.Plugin
+class AltLogger extends ActiveRecord.Plugin
   messages: []
 
   # Callback hooks
@@ -207,7 +207,7 @@ class User extends ActiveRecord.Model
   fields: ['id', 'username', 'name']
   plugins: -> [
     'json'
-    'logger'
+    AltLogger
   ]
 
 user = new User name: 'foo', username: 'bar'
