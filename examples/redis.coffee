@@ -12,10 +12,8 @@ class User extends ActiveRecord.Model
   fields: ['id', 'username', 'name']
 
 
-user = new User name: 'Ryan', username: 'meltingice'
-user.save (err) ->
-  console.log user.toJSON()
+start = (new Date()).getTime()
+User.find 1, (err, user) ->
+  end = (new Date()).getTime()
 
-  # Re-fetch
-  User.find user.id, (err, user) ->
-    console.log user.toJSON()
+  console.log "retrieved in #{end - start}ms"

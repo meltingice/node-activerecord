@@ -168,3 +168,28 @@ class User extends ActiveRecord.Model
 
   fields: ['id', 'username', 'name']
 ```
+
+**Plugins**
+
+``` coffeescript
+class Logger extends ActiveRecord.Plugin
+  messages: []
+
+  # Callback hooks
+  afterCreate: -> messages.push "Created model for #{@tableName()}"; true
+  afterUpdate: -> messages.push "Updated model for #{@tableName()}"; true
+
+  # Extend the model
+  outputLog: -> console.log msg for msg in messages
+
+class User extends ActiveRecord.Model
+  config: config
+  fields: ['id', 'username', 'name']
+  plugins: -> [
+    json
+    Logger
+  ]
+
+user = new User name: 'foo', username: 'bar'
+user.save (err) -> user.outputLog()
+```

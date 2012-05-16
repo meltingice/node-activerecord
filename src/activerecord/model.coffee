@@ -14,6 +14,12 @@ exports.Model = class Model
   hasOne: -> []
   belongsTo: -> []
 
+  # Since the JSON plugin is so commonly used, we include it by
+  # default.
+  plugins: -> [
+    require(__dirname + "/plugins/json")
+  ]
+
   @find: (args...) ->
     return if arguments.length < 1 or arguments[0] is null
 
@@ -66,13 +72,17 @@ exports.Model = class Model
     if plural then name + "s" else name
 
   constructor: (data = {}, tainted = true) ->
-    @notify 'beforeInit'
-
     @_data = {}
     @_initData = data
     @_dirtyData = {}
     @_isDirty = false
     @_new = true
+
+    # Plugin system
+    @pluginCache = []
+    @extend @plugins()
+
+    @notify 'beforeInit'
 
     for field in @fields
       do (field) =>
@@ -222,7 +232,7 @@ exports.Model = class Model
   getAssociation: (model, cb) ->
     type = @hasAssociation model
     return cb(null) if type is false
-    return cb(@_associations[model.name]) if @_associations[model.name]?
+    return cb(null, @_associations[model.name]) if @_associations[model.name]?
 
     config = @associationConfig model
 
@@ -336,7 +346,21 @@ exports.Model = class Model
     return @table if @table
     return @__proto__.constructor.name.toLowerCase() + "s"
 
-  toJSON: -> @_data
+  # Extends this model with new functionality. The base of the plugin system.
+  # In the ES.next future, we can drop directly extending the Model object and
+  # instead use proxies to send requests to fully separate Plugin objects.
+  #
+  # Note that this does not allow you to override any of the existing functions
+  # in the Model object.
+  extend: (src) ->
+    src = [src] unless Array.isArray(src)
+
+    for copy in src
+      for own prop of copy::
+        continue if prop is "constructor"
+        @[prop] = copy::[prop] unless @[prop]
+
+      @pluginCache.push new copy(@)
 
   # In the future, this will be used to support notifying plugins as well
   notify: (event, cb = null) ->
@@ -344,10 +368,16 @@ exports.Model = class Model
       # async
       @[event] (result1) =>
         @["_#{event}"] (result2) =>
-          cb result1 and result2
+          result = result1 and result2
+          for plugin in @pluginCache
+            result = result and plugin[event]()
+
+          cb(result)
     else
       # sync
-      @[event]() and @["_#{event}"]()
+      result = @[event]() and @["_#{event}"]()
+      for plugin in @pluginCache
+        result = result and plugin[event]()
 
   # Internal callbacks. Don't override these.
   _isValid: -> true
