@@ -4,6 +4,10 @@ config = require __dirname + "/config"
 class User extends ActiveRecord.Model
   config: config
   fields: ['id', 'username', 'name']
+  plugins: -> [
+    'json'
+    'logger'
+  ]
 
   filterUsername: (username) -> username + " bob"
   isValid: ->

@@ -17,7 +17,7 @@ exports.Model = class Model
   # Since the JSON plugin is so commonly used, we include it by
   # default.
   plugins: -> [
-    require(__dirname + "/plugins/json")
+    'json'
   ]
 
   @find: (args...) ->
@@ -57,7 +57,7 @@ exports.Model = class Model
       args,
       {primaryIndex: model.primaryIndex},
       (err, rows) =>
-        cb(err, rows) if err
+        return cb(err, rows) if err
 
         resultSet = []
         for row in rows
@@ -356,6 +356,10 @@ exports.Model = class Model
     src = [src] unless Array.isArray(src)
 
     for copy in src
+      # If it's a string, it's a built-in plugin
+      if typeof copy is "string"
+        copy = require __dirname + "/plugins/#{copy}"
+
       for own prop of copy::
         continue if prop is "constructor"
         @[prop] = copy::[prop] unless @[prop]

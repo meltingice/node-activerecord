@@ -186,8 +186,8 @@ class User extends ActiveRecord.Model
   config: config
   fields: ['id', 'username', 'name']
   plugins: -> [
-    json
-    Logger
+    'json'
+    'logger'
   ]
 
 user = new User name: 'foo', username: 'bar'
