@@ -22,9 +22,8 @@ task 'compile', 'Compile the Coffeescript source to JS', ->
   glob "#{inputDir}/#{search}", (er, files) ->
     for file in files
       inCode = fs.readFileSync file, "utf8"
-      outCode = coffee.compile inCode
       outFile = "#{outputDir}/" + file.substr("#{inputDir}/".length).replace 'coffee', 'js'
-
-      fs.writeFileSync outFile, outCode
-
       util.log "Compile: #{file} -> #{outFile}"
+
+      outCode = coffee.compile inCode
+      fs.writeFileSync outFile, outCode

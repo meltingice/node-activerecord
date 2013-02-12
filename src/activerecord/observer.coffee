@@ -1,0 +1,1 @@
+exports.Observer = class Observer
