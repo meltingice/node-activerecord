@@ -1,6 +1,6 @@
-ActiveRecord = require '../lib'
+{Configuration} = require '../src'
 
-module.exports = new ActiveRecord.Configuration
+module.exports = new Configuration
   sqlite:
     database: "#{__dirname}/test.db"
   mysql:

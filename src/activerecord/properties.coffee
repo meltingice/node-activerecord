@@ -2,7 +2,7 @@
 
 module.exports = 
   createProperties: ->
-    for field in [@primaryIndex].concat(@fields) then do (field) =>
+    for field in [@primaryKey].concat(@fields) then do (field) =>
       @data[field] = null
       Object.defineProperty @, field,
         enumerable: true
@@ -11,7 +11,7 @@ module.exports =
         set: (val) ->
           # We don't allow the primary index to be set via
           # accessor method.
-          return if field is @primaryIndex
+          return if field is @primaryKey
           if @readAttribute(field) isnt val
             val = @applyAttributeFilter(field, val)
             @writeAttribute(field, val)

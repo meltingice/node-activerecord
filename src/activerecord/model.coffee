@@ -4,7 +4,8 @@ exports.Model = class Model extends Module
   @extends  require('./tablenaming').static
   @includes require('./tablenaming').members
 
-  @extends  require('./querying')
+  @extends  require('./querying').static
+  @includes require('./querying').members
   @includes require('./properties')
   @includes require('./relations')
   @includes require('./events')

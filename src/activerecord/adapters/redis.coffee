@@ -1,10 +1,12 @@
+redis = require 'redis'
 {Adapter} = require '../adapter'
 
-exports.RedisAdapter = class RedisAdapter extends Adapter
+module.exports = class RedisAdapter extends Adapter
+  @adapterName: 'redis'
   idPreGeneration: true
 
   initialize: ->
-    @client = redis.createClient @options.port, @options.host
+    @client = redis.createClient @config.port, @config.host
 
   keyFromOptions: (opts, id = null) ->
     key = "#{opts.table}/#{opts.primaryKey}:"
@@ -20,4 +22,4 @@ exports.RedisAdapter = class RedisAdapter extends Adapter
     multi.hgetall @keyFromOptions(opts, id) for id in opts.query
     multi.exec (err, results) ->
       return cb(err, []) if err
-      cb(null, results)
+      cb null, results.filter (r) -> r isnt null
