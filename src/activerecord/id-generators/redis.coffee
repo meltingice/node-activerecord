@@ -1,0 +1,13 @@
+redis = require 'redis'
+{IdGenerator} = require '../idgenerator'
+
+module.exports = class RedisIdGenerator extends IdGenerator
+  @generatorName: 'redis'
+  type: 'pre'
+
+  initialize: ->
+    @client = redis.createClient @config.port, @config.host
+
+  generate: (opts, cb = ->) ->
+    key = "#{opts.table}/#{opts.primaryKey}/id"
+    @client.incr key, cb

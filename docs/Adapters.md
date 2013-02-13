@@ -9,7 +9,6 @@ Specification of the data passed to and returned from CRUD functions
 * Options
   * Model data
   * Table (keyspace, identifier, etc)
-  * Primary ID (if pre-generation)
   * Primary Key
 * Callback (if async)
 

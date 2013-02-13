@@ -1,6 +1,7 @@
 exports.Adapter = class Adapter
-  # Does this adapter require ID pre-generation?
-  idPreGeneration: false
+  idGeneration:
+    pre: false
+    post: true
 
   constructor: (@config) -> @initialize()
   initialize: ->

@@ -3,7 +3,9 @@ redis = require 'redis'
 
 module.exports = class RedisAdapter extends Adapter
   @adapterName: 'redis'
-  idPreGeneration: true
+  idGeneration:
+    pre: true
+    post: false
 
   initialize: ->
     @client = redis.createClient @config.port, @config.host
@@ -14,11 +16,15 @@ module.exports = class RedisAdapter extends Adapter
     return key
 
   create: (opts, cb) ->
-    @client.hmset @keyFromOptions(opts), opts.data, (err) ->
+    data = {}
+    data[key] = val.toString() for own key, val of opts.data
+
+    @client.hmset @keyFromOptions(opts), data, (err) ->
       cb(err, opts.data)
 
   read: (opts, cb) ->
     multi = @client.multi()
+    console.log @keyFromOptions(opts, id) for id in opts.query
     multi.hgetall @keyFromOptions(opts, id) for id in opts.query
     multi.exec (err, results) ->
       return cb(err, []) if err

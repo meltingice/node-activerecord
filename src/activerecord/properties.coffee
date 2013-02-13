@@ -3,7 +3,7 @@
 module.exports = 
   createProperties: ->
     for field in [@primaryKey].concat(@fields) then do (field) =>
-      @data[field] = null
+      @data[field] = if @initData[field] then @initData[field] else null
       Object.defineProperty @, field,
         enumerable: true
         configurable: false

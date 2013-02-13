@@ -5,7 +5,7 @@ exports.Model = class Model extends Module
   @includes require('./tablenaming').members
 
   @extends  require('./querying').static
-  # @includes require('./querying').members
+  @includes require('./querying').members
   @includes require('./properties')
   @includes require('./relations')
   @includes require('./events')
@@ -21,7 +21,7 @@ exports.Model = class Model extends Module
     @initData = data
     @dirtyKeys = {}
     @isDirty = false
-    @new = _new
+    @isNew = _new
 
     @createProperties()
     @createRelations()

@@ -10,6 +10,7 @@ class UserObserver extends Observer
 class User extends Model
   config: config
   adapter: 'redis'
+  idGenerator: 'redis'
   fields: ['name', 'firstName', 'lastName', 'email']
   observer: UserObserver
   hasMany: -> [Post]
@@ -18,11 +19,11 @@ class Post extends Model
   fields: ['title', 'user_id']
   belongsTo: -> [User]
 
-user = new User()
-user.name = "Bob Hope"
-user.email = "bob@hope.com"
+# user = new User()
+# user.name = "Bob Hope"
+# user.email = "bob@hope.com"
+# user.save ->
+#   console.log user
 
-console.log user
-
-User.find 1, (err, results) ->
-  console.log err, results
+User.find [5, 6], (err, users) ->
+  console.log users
