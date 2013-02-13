@@ -10,6 +10,7 @@ Specification of the data passed to and returned from CRUD functions
   * Model data
   * Table (keyspace, identifier, etc)
   * Primary ID (if pre-generation)
+  * Primary Key
 * Callback (if async)
 
 **Return (via callback if async)**
@@ -21,7 +22,9 @@ Specification of the data passed to and returned from CRUD functions
 
 **Parameters**
 
-* Query
+* Options
+  * Query (as Array)
+  * Table (keyspace, identifier, etc)
 * Callback (if async)
 
 **Return (via callback if async)**

@@ -1,4 +1,4 @@
-{Inflection} = require './inflection'
+{Inflection} = require './support/inflection'
 
 module.exports = 
   createProperties: ->

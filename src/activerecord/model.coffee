@@ -7,11 +7,13 @@ exports.Model = class Model extends Module
   @extends  require('./querying')
   @includes require('./properties')
   @includes require('./relations')
+  @includes require('./events')
 
   config: null
+  observer: null
   fields: []
 
-  primaryIndex: 'id'
+  primaryKey: 'id'
 
   constructor: (data = {}) ->
     @data = {}
