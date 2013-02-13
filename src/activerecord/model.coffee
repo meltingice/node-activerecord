@@ -5,7 +5,7 @@ exports.Model = class Model extends Module
   @includes require('./tablenaming').members
 
   @extends  require('./querying').static
-  @includes require('./querying').members
+  # @includes require('./querying').members
   @includes require('./properties')
   @includes require('./relations')
   @includes require('./events')
@@ -16,12 +16,12 @@ exports.Model = class Model extends Module
 
   primaryKey: 'id'
 
-  constructor: (data = {}) ->
+  constructor: (data = {}, _new = true) ->
     @data = {}
     @initData = data
     @dirtyKeys = {}
     @isDirty = false
-    @new = true
+    @new = _new
 
     @createProperties()
     @createRelations()
