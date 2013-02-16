@@ -1,6 +1,4 @@
 exports.Observer = class Observer
-  isAsync: (method) -> @[method].length is 1
-  
   # The callbacks. Override these.
   afterFind: -> true
   beforeSave: -> true

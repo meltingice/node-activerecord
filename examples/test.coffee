@@ -25,5 +25,4 @@ class Post extends Model
 # user.save ->
 #   console.log user
 
-User.find [5, 6], (err, users) ->
-  console.log users
+User.all (err, users) -> console.log users

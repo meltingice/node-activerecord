@@ -1,4 +1,4 @@
-{Result} = require './result'
+array = require 'array.js'
 
 exports.static =
   # Search by primary IDs
@@ -7,11 +7,12 @@ exports.static =
   find: (search, cb = ->) ->
     if Array.isArray(search)
       type = 'multi'
+    else if typeof search is "object"
+      type = 'where'
     else
       type = 'single'
       search = [search]
 
-    model = new @
     adapter = @getAdapter()
 
     opts =
@@ -19,13 +20,19 @@ exports.static =
       table: @tableName()
       primaryKey: @::primaryKey
 
-    if adapter.isAsync 'read'
-      adapter.read opts, (err, results) =>
-        @queryCallback(err, results, type, cb)
-    else
-      @queryCallback null, adapter.read opts, type, cb
+    adapter.read opts, (err, results) =>
+      @queryCallback(err, results, type, cb)
 
-  where: (search) ->
+  all: (cb = ->) ->
+    adapter = @getAdapter()
+    opts =
+      query: null
+      table: @tableName()
+      primaryKey: @::primaryKey
+      scope: 'all'
+
+    adapter.read opts, (err, results) =>
+      @queryCallback(err, results, 'multi', cb)
 
   getAdapter: ->
     unless @adapter?
@@ -48,17 +55,19 @@ exports.static =
         idGenerator = require "./id-generators/#{@::idGenerator}"
         config = @::config.get('idGenerators')[idGenerator.generatorName]
         @idGenerator = new idGenerator(config)
+      else
+        return false # ID generation performed by adapter
 
     return @idGenerator
 
   queryCallback: (err, results, type, cb) ->
-    models = new Result()
+    models = array()
     for result in results
       model =  new @(result, false)
       model.notify 'afterFind'
       models.push model
 
-    models = models.first if type is 'single'
+    models = models.first() if type is 'single'
     cb(err, models)
 
 exports.members = 
@@ -72,7 +81,7 @@ exports.members =
       @notify 'beforeUpdate'
 
     idGen = @constructor.getIdGenerator()
-    if @isNew and idGen.type is 'pre'
+    if @isNew and idGen and idGen.type is 'pre'
       opts =
         data: @data
         table: @tableName()

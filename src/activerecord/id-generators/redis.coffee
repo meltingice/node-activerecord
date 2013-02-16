@@ -3,7 +3,6 @@ redis = require 'redis'
 
 module.exports = class RedisIdGenerator extends IdGenerator
   @generatorName: 'redis'
-  type: 'pre'
 
   initialize: ->
     @client = redis.createClient @config.port, @config.host
