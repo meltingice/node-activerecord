@@ -23,6 +23,7 @@ module.exports = class RedisAdapter extends Adapter
       cb(err, opts.data)
 
   read: (opts, cb) ->
+    console.log opts
     multi = @client.multi()
 
     if opts.scope?

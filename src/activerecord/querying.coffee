@@ -1,50 +1,13 @@
-array = require 'array.js'
+{Query} = require './query'
 
 exports.static =
-  # Search by primary IDs
-  # If given an array of ID(s), the response will
-  # also be an array.
-  find: (search, cb = ->) ->
-    if Array.isArray(search)
-      type = 'multi'
-    else if typeof search is "object"
-      type = 'where'
-    else
-      type = 'single'
-      search = [search]
+  find: (search, cb) ->
+    query = new Query(@)
+    query.find search, cb
 
-    adapter = @getAdapter()
-
-    opts =
-      query: search
-      table: @tableName()
-      primaryKey: @::primaryKey
-
-    adapter.read opts, (err, results) =>
-      @queryCallback(err, results, type, cb)
-
-  all: (cb = ->) ->
-    adapter = @getAdapter()
-    opts =
-      query: null
-      table: @tableName()
-      primaryKey: @::primaryKey
-      scope: 'all'
-
-    adapter.read opts, (err, results) =>
-      @queryCallback(err, results, 'multi', cb)
-
-  getAdapter: ->
-    unless @adapter?
-      if typeof @::adapter is "object"
-        config = @::config.get @::adapter.adapterName
-        @adapter = new @::adapter(config)
-      else if typeof @::adapter is "string"
-        adapter = require "./adapters/#{@::adapter}"
-        config = @::config.get adapter.adapterName
-        @adapter = new adapter(config)
-
-    return @adapter
+  all: (cb) ->
+    query = new Query(@)
+    query.all cb
 
   getIdGenerator: ->
     unless @idGenerator?
