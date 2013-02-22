@@ -47,7 +47,7 @@ exports.static =
 
 exports.members = 
   save: (cb = ->) ->
-    return cb(null) unless @isDirty or @isNew
+    return cb(null) unless @isDirty() or @isNew
 
     @notify 'beforeSave'
     if @isNew
@@ -60,7 +60,7 @@ exports.members =
 
     if @isNew and idGen and adapter.idGeneration.pre
       opts =
-        data: @data
+        data: @dirtyAttributes()
         table: @tableName()
         primaryKey: @primaryKey
 
@@ -76,16 +76,16 @@ exports.members =
 
     if @isNew
       opts =
-        data: @data
+        data: @dirtyAttributes()
         table: @tableName()
-        id: @data[@primaryKey]
+        id: @readAttribute(@primaryKey)
         primaryKey: @primaryKey
 
       adapter.create opts, (err, result) =>
         @saveFinished(err, result, cb)
     else
       opts =
-        data: @data # TODO, only dirty keys
+        data: @dirtyAttributes()
         table: @tableName()
 
       adapter.update opts, (err, result) =>

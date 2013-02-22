@@ -2,7 +2,7 @@
 config = require './config'
 
 class UserObserver extends Observer
-  filterName: (name) ->
+  setName: (name) ->
     names = name.split(" ")
     @firstName = names[0]
     @lastName = names[1]
@@ -25,19 +25,12 @@ class Post extends Model
 # user.save ->
 #   console.log user
 
-# user = new User
-#   name: 'Ryan LeFevre'
-#   email: 'ryan@layervault.com'
+user = new User
+  name: 'Ryan LeFevre'
+  email: 'ryan@layervault.com'
+
+console.log user
 
 # user.save ->
-#   User.find(1).find(2).get (err, users) ->
+#   User.find([3, 4]).get (err, users) ->
 #     console.log users
-
-#   User.find([1, 2]).get (err, users) ->
-#     console.log users
-
-User.find 1, (err, user) ->
-  console.log user
-
-User.find [1, 2], (err, users) ->
-  console.log users

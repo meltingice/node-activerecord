@@ -20,8 +20,10 @@ exports.Model = class Model extends Module
     @data = {}
     @initData = data
     @dirtyKeys = {}
-    @isDirty = false
     @isNew = _new
 
     @createProperties()
     @createRelations()
+
+    # Run this now so that assignment uses the setter methods
+    @[key] = val for key, val of data

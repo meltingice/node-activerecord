@@ -3,7 +3,6 @@
 module.exports = 
   createProperties: ->
     for field in [@primaryKey].concat(@fields) then do (field) =>
-      @data[field] = if @initData[field] then @initData[field] else null
       Object.defineProperty @, field,
         enumerable: true
         configurable: false
@@ -16,15 +15,36 @@ module.exports =
             val = @applyAttributeFilter(field, val)
             @writeAttribute(field, val)
             @dirtyKeys[field] = true
-            @isDirty = true
-
-  applyAttributeFilter: (field, val) ->
-    return val unless @observer?
-    
-    filterFunc = "filter#{Inflection.camelize(field)}"
-    return val unless @observer::[filterFunc]?
-
-    @observer::[filterFunc].call(@, val)
 
   readAttribute: (attr) -> @data[attr]
-  writeAttribute: (attr, value) -> @data[attr] = value
+  writeAttribute: (attr, value) ->
+    @data[attr] = value
+    @executeAttributeEvent(attr, value)
+
+  dirtyAttributes: (includePrimary = false) ->
+    return {} unless @isDirty()
+
+    data = {}
+    if includePrimary
+      data[@primaryKey] = @readAttribute(@primaryKey)
+    
+    for own key, dirty of @dirtyKeys
+      continue unless dirty
+      data[key] = @readAttribute(key)
+
+    return data
+
+  isDirty: -> Object.keys(@dirtyKeys).length > 0
+
+  applyAttributeFilter: (field, val) ->
+    filterFunc = "filter#{Inflection.camelize(field)}"
+    result = @notifyObserver filterFunc
+    if result is false then val else result
+
+  executeAttributeEvent: (attr, val) ->
+    func = "set#{Inflection.camelize(attr)}"
+    @notifyObserver func, val
+
+  notifyObserver: (func, args...) ->
+    return false unless @observer? and @observer::[func]?
+    @observer::[func].apply @, args
