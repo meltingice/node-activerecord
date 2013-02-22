@@ -8,5 +8,5 @@ module.exports = class RedisIdGenerator extends IdGenerator
     @client = redis.createClient @config.port, @config.host
 
   generate: (opts, cb = ->) ->
-    key = "#{opts.table}/#{opts.primaryKey}/id"
+    key = "#{opts.table}/#{opts.primaryKey}"
     @client.incr key, cb

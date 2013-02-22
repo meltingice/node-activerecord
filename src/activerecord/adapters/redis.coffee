@@ -1,3 +1,10 @@
+# Adapter for Redis
+# - Does not support raw SQL queries.
+# - Searching with multiple params will perform a search
+#   for each param as a separate key.
+# - 99% of the time you'll just be searching on primary keys.
+# - All data is stored in hashes.
+
 redis = require 'redis'
 {Adapter} = require '../adapter'
 
@@ -17,27 +24,23 @@ module.exports = class RedisAdapter extends Adapter
 
   create: (opts, cb) ->
     data = {}
-    data[key] = val.toString() for own key, val of opts.data
+
+    for own key, val of opts.data
+      continue unless val?
+      data[key] = val.toString()
 
     @client.hmset @keyFromOptions(opts), data, (err) ->
       cb(err, opts.data)
 
   read: (opts, cb) ->
-    console.log opts
     multi = @client.multi()
 
-    if opts.scope?
-      @scoped[opts.scope].call(@, multi, opts)
-    else if Array.isArray(opts.query)
-      console.log @keyFromOptions(opts, id) for id in opts.query
-      multi.hgetall @keyFromOptions(opts, id) for id in opts.query
-    else if typeof opts.query is "object"
-      key = [opts.table]
-      key.push "#{prop}:#{val}" for own prop, val of opts.query
-      key = key.join '/'
-      console.log key
+    for own param, values of opts.where
+      for value in values
+        key = [opts.table]
+        key.push "#{param}:#{value}" 
 
-      multi.hgetall key
+        multi.hgetall key.join('/')
 
     multi.exec (err, results) ->
       return cb(err, []) if err

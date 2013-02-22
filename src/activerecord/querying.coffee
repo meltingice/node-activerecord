@@ -9,6 +9,18 @@ exports.static =
     query = new Query(@)
     query.all cb
 
+  getAdapter: ->
+    unless @adapter?
+      if typeof @::adapter is "object"
+        config = @::config.get @::adapter.adapterName
+        @adapter = new @::adapter(config)
+      else if typeof @::adapter is "string"
+        adapter = require "./adapters/#{@::adapter}"
+        config = @::config.get adapter.adapterName
+        @adapter = new adapter(config)
+
+    return @adapter
+
   getIdGenerator: ->
     unless @idGenerator?
       if typeof @::idGenerator is "object"
@@ -43,8 +55,10 @@ exports.members =
     else
       @notify 'beforeUpdate'
 
+    adapter = @constructor.getAdapter()
     idGen = @constructor.getIdGenerator()
-    if @isNew and idGen and idGen.type is 'pre'
+
+    if @isNew and idGen and adapter.idGeneration.pre
       opts =
         data: @data
         table: @tableName()

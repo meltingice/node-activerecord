@@ -3,14 +3,13 @@ array = require 'array.js'
 exports.Query = class Query
   constructor: (@Model) ->
     @adapter = null
-    @type = 'multi'
     @options =
       table: @Model.tableName()
       primaryKey: @Model::primaryKey
-      query: null
-      where: []
-      limit: null
-      order: null
+      query: null # Raw SQL
+      where: {}   # {param: [val]}
+      limit: null # [start, length]
+      order: null # [{key: 'ASC/DESC'}]
 
   # Search by primary IDs
   # If given an array of ID(s), the response will
@@ -33,6 +32,10 @@ exports.Query = class Query
         @options.where[key].push val
 
     if cb? then @execute(cb) else return @
+
+  limit: (start, count = 1) ->
+    @options.limit = [start, count]
+    return @
 
   # Accessors
   first: (cb) ->
@@ -61,7 +64,7 @@ exports.Query = class Query
 
   get: (cb) -> @execute(cb)
   execute: (cb) ->
-    adapter = @getAdapter()
+    adapter = @Model.getAdapter()
 
     adapter.read @options, (err, results) =>
       return cb(err, array()) if err
@@ -76,16 +79,15 @@ exports.Query = class Query
       model.notify 'afterFind'
       models.push model
 
-    return models
+    if @responseType() is 'single'
+      return models.first()
+    else
+      return models
 
-  getAdapter: ->
-    unless @adapter?
-      if typeof @Model::adapter is "object"
-        config = @Model::config.get @Model::adapter.adapterName
-        @adapter = new @Model::adapter(config)
-      else if typeof @Model::adapter is "string"
-        adapter = require "./adapters/#{@Model::adapter}"
-        config = @Model::config.get adapter.adapterName
-        @adapter = new adapter(config)
+  responseType: ->
+    return 'multi' if Object.keys(@options.where).length > 1
+    return 'multi' unless @options.where[@options.primaryKey]
 
-    return @adapter
+    switch @options.where[@options.primaryKey].length
+      when 1 then 'single'
+      else 'multi'
