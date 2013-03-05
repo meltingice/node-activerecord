@@ -43,7 +43,7 @@ exports.Query = class Query
   # Accessors
   first: (cb) ->
     order = {}; order[@options.primaryKey] = 'ASC'
-    @options.order = [order]
+    @options.order = order
     @options.limit = [0, 1]
 
     @execute (err, models) ->
@@ -51,7 +51,7 @@ exports.Query = class Query
 
   last: (cb) ->
     order = {}; order[@options.primaryKey] = 'DESC'
-    @options.order = [order]
+    @options.order = order
     @options.limit = [0, 1]
 
     @execute (err, models) ->

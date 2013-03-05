@@ -1,14 +1,7 @@
 {Query} = require './query'
 
+proxyMethods = ['find', 'all', 'first', 'last', 'limit']
 exports.static =
-  find: (search, cb) ->
-    query = new Query(@)
-    query.find search, cb
-
-  all: (cb) ->
-    query = new Query(@)
-    query.all cb
-
   getAdapter: ->
     unless @adapter?
       if typeof @::adapter is "object"
@@ -44,6 +37,11 @@ exports.static =
 
     models = models.first() if type is 'single'
     cb(err, models)
+
+for method in proxyMethods then do (method) ->
+  exports.static[method] = (args...) ->
+    query = new Query(@)
+    query[method].apply query, args
 
 exports.members = 
   save: (cb = ->) ->

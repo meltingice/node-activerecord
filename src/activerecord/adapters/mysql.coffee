@@ -24,18 +24,21 @@ module.exports = class MysqlAdapter extends Adapter
     if opts.query?
       query = [opts.query]
     else
-      query = ["SELECT * FROM #{opts.table} WHERE"]
-      keys = []
+      query = ["SELECT * FROM #{opts.table}"]
       
-      for key, vals of opts.where
-        params.push vals
+      
+      if Object.keys(opts.where).length > 0
+        query.push 'WHERE'
+        keys = []
+        for key, vals of opts.where
+          params.push vals
 
-        switch vals.length
-          when 0 then continue
-          when 1 then keys.push "#{key} = ?"
-          else keys.push "#{key} IN (?)"
+          switch vals.length
+            when 0 then continue
+            when 1 then keys.push "#{key} = ?"
+            else keys.push "#{key} IN (?)"
 
-      query.push keys.join(' AND ')
+        query.push keys.join(' AND ')
 
     if opts.order?
       orders = []

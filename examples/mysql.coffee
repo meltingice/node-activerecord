@@ -16,7 +16,7 @@ class Post extends Model
   fields: ['title', 'user_id']
   belongsTo: -> [User]
 
-User.find(1).limit(1).get (err, user) ->
+User.find 1, (err, user) ->
   console.log user
 
 # user = new User
