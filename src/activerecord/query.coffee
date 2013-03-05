@@ -9,7 +9,7 @@ exports.Query = class Query
       query: null # Raw SQL
       where: {}   # {param: [val]}
       limit: null # [start, length]
-      order: null # [{key: 'ASC/DESC'}]
+      order: null # {key: 'ASC/DESC'}
 
   # Search by primary IDs
   # If given an array of ID(s), the response will

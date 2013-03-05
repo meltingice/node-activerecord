@@ -47,6 +47,5 @@ module.exports = class MysqlAdapter extends Adapter
     query.push "LIMIT #{opts.limit.join(', ')}" if opts.limit?
 
     query = query.join ' '
-    console.log query, params
     @db.query query, params, cb
 
