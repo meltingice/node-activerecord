@@ -93,4 +93,6 @@ exports.members =
 
   saveFinished: (err, result, cb) ->
     @isNew = false
-    cb()
+    @data[key] = val for key, val of result
+
+    cb.call(@, err)

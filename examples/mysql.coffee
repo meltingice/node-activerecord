@@ -3,8 +3,7 @@ config = require './config'
 
 class User extends Model
   config: config
-  adapter: 'redis'
-  idGenerator: 'redis'
+  adapter: 'mysql'
   fields: ['name', 'firstName', 'lastName', 'email']
   hasMany: -> [Post]
 
@@ -17,18 +16,12 @@ class Post extends Model
   fields: ['title', 'user_id']
   belongsTo: -> [User]
 
-# user = new User()
-# user.name = "Bob Hope"
-# user.email = "bob@hope.com"
+User.find(1).limit(1).get (err, user) ->
+  console.log user
+
+# user = new User
+#   name: 'Bob Hope'
+#   email: 'bob@hope.com'
+
 # user.save ->
 #   console.log user
-
-user = new User
-  name: 'Ryan LeFevre'
-  email: 'ryan@layervault.com'
-
-console.log user
-
-# user.save ->
-#   User.find([3, 4]).get (err, users) ->
-#     console.log users

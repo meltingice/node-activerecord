@@ -46,5 +46,5 @@ module.exports =
     @notifyObserver func, val
 
   notifyObserver: (func, args...) ->
-    return false unless @observer? and @observer::[func]?
-    @observer::[func].apply @, args
+    return false unless @[func]?
+    @[func].apply @, args

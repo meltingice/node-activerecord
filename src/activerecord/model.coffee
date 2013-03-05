@@ -25,5 +25,6 @@ exports.Model = class Model extends Module
     @createProperties()
     @createRelations()
 
-    # Run this now so that assignment uses the setter methods
-    @[key] = val for key, val of data
+    # If this model isn't new, reset the dirty keys
+    @dirtyKeys = {} unless _new
+    @data[key] = val for own key, val of data

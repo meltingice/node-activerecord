@@ -6,8 +6,8 @@ module.exports = new Configuration
   mysql:
     host: 'localhost'
     database: 'test'
-    user: 'root'
-    password: ''
+    user: 'test'
+    password: 'password'
   redis:
     host: null
     port: null

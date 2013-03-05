@@ -33,15 +33,18 @@ exports.Query = class Query
 
     if cb? then @execute(cb) else return @
 
-  limit: (start, count = 1) ->
-    @options.limit = [start, count]
+  limit: (args...) ->
+    switch args.length
+      when 1 then @options.limit = [0, args[0]]
+      else @options.limit = args
+    
     return @
 
   # Accessors
   first: (cb) ->
     order = {}; order[@options.primaryKey] = 'ASC'
     @options.order = [order]
-    @options.limit = [1, 1]
+    @options.limit = [0, 1]
 
     @execute (err, models) ->
       cb(err, models.first())
@@ -49,7 +52,7 @@ exports.Query = class Query
   last: (cb) ->
     order = {}; order[@options.primaryKey] = 'DESC'
     @options.order = [order]
-    @options.limit = [1, 1]
+    @options.limit = [0, 1]
 
     @execute (err, models) ->
       cb(err, models.last())
