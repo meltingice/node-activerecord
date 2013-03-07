@@ -26,7 +26,6 @@ module.exports = class MysqlAdapter extends Adapter
     else
       query = ["SELECT * FROM #{opts.table}"]
       
-      
       if Object.keys(opts.where).length > 0
         query.push 'WHERE'
         keys = []
