@@ -10,7 +10,8 @@
     "url": "https://github.com/meltingice/node-activerecord.git"
   },
   "dependencies": {
-    "array.js": "*"
+    "array.js": "*",
+    "coffeescript-module": "*"
   },
   "devDependencies": {
     "coffee-script": ">= 1.3.1",

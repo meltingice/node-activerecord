@@ -1,4 +1,4 @@
-{Module} = require './module'
+{Module} = require 'coffeescript-module'
 
 exports.Model = class Model extends Module
   @extends  require('./tablenaming').static
