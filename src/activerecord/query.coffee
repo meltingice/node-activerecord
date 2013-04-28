@@ -7,7 +7,7 @@ exports.Query = class Query
       table: @Model.tableName()
       primaryKey: @Model::primaryKey
       query: null # Raw SQL
-      where: {}   # {param: [val]}
+      where: []   # [["foo > ? & bar > ?", [1, 2]]]
       limit: null # [start, length]
       order: null # {key: 'ASC/DESC'}
 

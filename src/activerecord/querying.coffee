@@ -1,6 +1,8 @@
 {Query} = require './query'
 
+# We proxy calls to these methods over to the Query module
 proxyMethods = ['find', 'all', 'first', 'last', 'limit']
+
 exports.static =
   getAdapter: ->
     unless @adapter?

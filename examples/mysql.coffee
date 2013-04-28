@@ -16,6 +16,11 @@ class Post extends Model
   fields: ['title', 'user_id']
   belongsTo: -> [User]
 
+user = new User
+  name: 'Ryan LeFevre'
+  email: 'example@example.com'
+
+# user.save ->
 User.find 1, (err, user) ->
   console.log user
 
