@@ -28,7 +28,7 @@ module.exports =
   # Attribute events are still fired.
   writeAttribute: (attr, value, dirty = true) ->
     @data[attr] = value
-    @dirtyKeys[attr] = true
+    @dirtyKeys[attr] = true if dirty?
     @executeAttributeEvent(attr, value)
 
   # Returns an object representing every attribute that has changed, and it's
