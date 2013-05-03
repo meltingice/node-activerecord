@@ -6,9 +6,6 @@ module.exports =
   # setters.
   createProperties: ->
     for field in [@primaryKey].concat(@fields) then do (field) =>
-      # Prevent double definition of the primary key
-      return if field is @primaryKey
-
       Object.defineProperty @, field,
         enumerable: true
         configurable: false
@@ -29,8 +26,9 @@ module.exports =
 
   # Directly write data to a given attribute, bypassing any attribute filters.
   # Attribute events are still fired.
-  writeAttribute: (attr, value) ->
+  writeAttribute: (attr, value, dirty = true) ->
     @data[attr] = value
+    @dirtyKeys[attr] = true
     @executeAttributeEvent(attr, value)
 
   # Returns an object representing every attribute that has changed, and it's
