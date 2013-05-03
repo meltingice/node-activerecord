@@ -6,6 +6,9 @@ module.exports =
   # setters.
   createProperties: ->
     for field in [@primaryKey].concat(@fields) then do (field) =>
+      # Prevent double definition of the primary key
+      return if field is @primaryKey
+
       Object.defineProperty @, field,
         enumerable: true
         configurable: false

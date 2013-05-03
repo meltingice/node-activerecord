@@ -45,4 +45,4 @@ exports.Model = class Model extends Module
 
     # If this model isn't new, reset the dirty keys
     @dirtyKeys = {} unless _new
-    @data[key] = val for own key, val of data
+    @[key] = val for own key, val of data
