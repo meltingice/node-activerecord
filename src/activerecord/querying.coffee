@@ -92,7 +92,8 @@ exports.members =
         @saveFinished(err, result, cb)
 
   saveFinished: (err, result, cb) ->
+    wasNew = @isNew
     @isNew = false
     @data[key] = val for key, val of result
-
+    @notify if wasNew then 'afterCreate' else 'afterUpdate'
     cb.call(@, err)
