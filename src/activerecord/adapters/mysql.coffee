@@ -25,7 +25,7 @@ module.exports = class MysqlAdapter extends Adapter
       query = [opts.query]
     else
       query = ["SELECT * FROM #{opts.table}"]
-      
+
       if Object.keys(opts.where).length > 0
         query.push 'WHERE'
         keys = []
@@ -51,3 +51,6 @@ module.exports = class MysqlAdapter extends Adapter
     query = query.join ' '
     @db.query query, params, cb
 
+  update: (opts, cb) ->
+    @db.query "UPDATE #{opts.table} SET ?", opts.data, (err, result) ->
+      cb(err, opts.data)
