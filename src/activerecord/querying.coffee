@@ -45,7 +45,7 @@ for method in proxyMethods then do (method) ->
     query = new Query(@)
     query[method].apply query, args
 
-exports.members = 
+exports.members =
   save: (cb = ->) ->
     return cb(null) unless @isDirty() or @isNew
 
@@ -89,7 +89,7 @@ exports.members =
         table: @tableName()
 
       adapter.update opts, (err, result) =>
-        @safeFinished(err, result, cb)
+        @saveFinished(err, result, cb)
 
   saveFinished: (err, result, cb) ->
     @isNew = false
