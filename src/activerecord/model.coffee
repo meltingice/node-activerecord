@@ -40,6 +40,11 @@ exports.Model = class Model extends Module
     # Create the properties on this model based on our defined fields
     @createProperties()
 
+    # console.log "DATA: ##", data, "##"
+    # console.log "pk:", @primaryKey
+    # Is this the best way? Only for Redis (mysql includes pk by default, maybe?)
+    @writeAttribute @primaryKey, data[@primaryKey], false
+
     # Create the model relations based on our belongsTo/hasOne/hasMany
     @createRelations()
 

@@ -24,17 +24,17 @@ config = new ActiveRecord.Configuration
 genericUsersTests = ->
   describe 'User', ->
     # before (done) ->
-      # sqlite3 = require('sqlite3').verbose()
-      # db = new sqlite3.Database config.get('sqlite').database
-      # db.serialize ->
-      #   db.run "CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username VARCHAR(20), name VARCHAR(255))", [], done
+    #   sqlite3 = require('sqlite3').verbose()
+    #   db = new sqlite3.Database config.get('sqlite').database
+    #   db.serialize ->
+    #     db.run "CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username VARCHAR(20), name VARCHAR(255))", [], done
 
     # after (done) ->
-      # sqlite3 = require('sqlite3')
-      # db = new sqlite3.Database "#{__dirname}/test.db"
-      # db.serialize ->
-      #   db.run "DROP TABLE users", [], ->
-      #     fs.unlink "#{__dirname}/test.db", done
+    #   sqlite3 = require('sqlite3')
+    #   db = new sqlite3.Database "#{__dirname}/test.db"
+    #   db.serialize ->
+    #     db.run "DROP TABLE users", [], ->
+    #       fs.unlink "#{__dirname}/test.db", done
 
     describe "#new()", ->
       it "should create a new empty user", ->
@@ -85,70 +85,108 @@ genericUsersTests = ->
 
           done()
 
-    # describe "#find()", ->
-    #   it "should find a model given the primary ID", (done) ->
-    #     # TODO: create test database
-    #     # TODO: id should be in keys, problem because its primary key?
-    #     User.find 39, (err, user) ->
-    #       console.log user
-    #       user.should.be.an.instanceof User
-    #       user.id.should.equal 39
-    #       done()
+    describe "#find()", ->
+      id = null
+      before (done) ->
+        User.first (err, user) ->
+          id = user.id
+          done()
 
-    #   it "should find a model given a SQL query", (done) ->
-    #     User.find "SELECT * FROM users WHERE id = ?", 1, (err, user) ->
-    #       user.should.be.an.instanceof User
-    #       user.id.should.equal 1
-    #       done()
+      it "should find the first model", (done) ->
+        User.first (err, user) ->
+          user.should.be.an.instanceof User
+          user.id.should.be.a 'number'
+          done()
 
-    # describe "#findAll()", ->
-    #   it "should find all models given an array of primary IDs", (done) ->
-    #     User.findAll [1, 2], (err, users) ->
-    #       users.should.be.an.instanceof Array
-    #       users.length.should.equal 2
+      it "should find the last model", (done) ->
+        User.last (err, user) ->
+          user.should.be.an.instanceof User
+          user.id.should.be.a 'number'
+          id_last = user.id
+          done()
 
-    #       users[0].should.be.an.instanceof User
-    #       users[0].id.should.equal 1
-    #       done()
+      it "should find a model given the primary ID", (done) ->
+        User.find id, (err, user) ->
+          user.should.be.an.instanceof User
+          user.id.should.equal id
+          done()
 
-    #   it "should find all models given a SQL query", (done) ->
-    #     User.findAll "SELECT * FROM users", (err, users) ->
-    #       users.should.be.an.instanceof Array
-    #       users.length.should.be.above 0
-    #       users[0].should.be.an.instanceof User
-    #       done()
+      it "should find a model given a SQL query", (done) ->
+        User.find ["SELECT * FROM users WHERE id = ?", id], (err, user) ->
+          user[0].should.be.an.instanceof User
+          user[0].id.should.equal id
+          done()
 
-    # describe "#update()", ->
-    #   it "should update the existing model", (done) ->
-    #     User.find 1, (err, user) ->
-    #       user.name = "newname"
-    #       user.save (err) ->
-    #         throw "did not save" if err
-    #         user.id.should.equal 1
-    #         user.name.should.equal "newname"
+    describe "#find() for all", ->
 
-    #         # Re-fetch user
-    #         User.find 1, (err, user) ->
-    #           user.id.should.equal 1
-    #           user.name.should.equal "newname"
-    #           done()
+      ids = []
+      before (done) ->
+        User.find [], (err, users) ->
+          ids = (user.id for user in [users[0], users[1]])
+          done()
 
-    # describe "#delete()", ->
-    #   it "should delete the model from the DB", (done) ->
-    #     User.find 1, (err, user) ->
-    #       user.delete (err) ->
-    #         throw "did not delete" if err
+      it "should find all models given an array of primary IDs", (done) ->
+        User.find ids, (err, users) ->
+          users.toArray().should.be.an.instanceof Array
+          users.length.should.equal 2
 
-    #         user.should.have.property 'id', null
-    #         user.should.have.property 'name', null
-    #         user.should.have.property 'username', null
+          users[0].should.be.an.instanceof User
+          users[0].id.should.equal ids[0]
+          users[1].should.be.an.instanceof User
+          users[1].id.should.equal ids[1]
+          done()
 
-    #         # Attempt to re-fetch user
-    #         User.find 1, (err, user) ->
-    #           user.should.be.an.instanceof User
-    #           user.should.have.property 'id', null
-    #           user.isLoaded().should.be.false
-    #           done()
+      it "should find all models given a SQL query", (done) ->
+        User.find "SELECT * FROM users", (err, users) ->
+          users.toArray().should.be.an.instanceof Array
+          users.length.should.be.above 0
+          users[0].should.be.an.instanceof User
+          done()
+
+    describe "#update()", ->
+
+      id = null
+      before (done) ->
+        User.first (err, user) ->
+          id = user.id
+          done()
+
+      it "should update the existing model", (done) ->
+        User.find id, (err, user) ->
+          user.name = "newname"
+          user.save (err) ->
+            throw "did not save" if err
+            user.id.should.equal id
+            user.name.should.equal "newname"
+
+            # Re-fetch user
+            User.find id, (err, user) ->
+              user.id.should.equal id
+              user.name.should.equal "newname"
+              done()
+
+    describe "#delete()", ->
+
+      id = null
+      before (done) ->
+        User.first (err, user) ->
+          id = user.id
+          done()
+
+      it "should delete the model from the DB", (done) ->
+        User.find id, (err, user) ->
+          user.delete (err) ->
+            throw "did not delete" if err
+            user.should.have.property 'id', null
+            user.should.have.property 'name', null
+            user.should.have.property 'username', null
+
+            # Attempt to re-fetch user
+            User.find id, (err, user) ->
+              user.should.be.an.instanceof User
+              user.should.have.property 'id', null
+              # user.isLoaded().should.be.false
+              done()
 
 
 # Model definition
@@ -157,11 +195,11 @@ class User extends ActiveRecord.Model
   fields: ['username', 'name']
 
 
-describe 'Redis', ->
+# describe 'Redis', ->
 
-  User::adapter = 'redis'
-  User::idGenerator = 'redis'
-  genericUsersTests()
+#   User::adapter = 'redis'
+#   User::idGenerator = 'redis'
+#   genericUsersTests()
 
 describe 'MySQL', ->
   User::adapter = 'mysql'

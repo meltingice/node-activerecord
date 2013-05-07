@@ -37,12 +37,13 @@ exports.Query = class Query
     switch args.length
       when 1 then @options.limit = [0, args[0]]
       else @options.limit = args
-    
+
     return @
 
   # Accessors
   first: (cb) ->
-    order = {}; order[@options.primaryKey] = 'ASC'
+    order = {}
+    order[@options.primaryKey] = 'ASC'
     @options.order = order
     @options.limit = [0, 1]
 
@@ -83,7 +84,8 @@ exports.Query = class Query
       models.push model
 
     if @responseType() is 'single'
-      return models.first()
+      return models.first() if models.length > 0
+      return new @Model
     else
       return models
 
