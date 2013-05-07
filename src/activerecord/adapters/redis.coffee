@@ -38,7 +38,7 @@ module.exports = class RedisAdapter extends Adapter
     for own param, values of opts.where
       for value in values
         key = [opts.table]
-        key.push "#{param}:#{value}" 
+        key.push "#{param}:#{value}"
 
         multi.hgetall key.join('/')
 
@@ -50,5 +50,4 @@ module.exports = class RedisAdapter extends Adapter
     all: (multi, opts) ->
       @client.keys "#{opts.table}/*", (err, results) ->
         for key in results
-          console.log key
           multi.hgetall key
