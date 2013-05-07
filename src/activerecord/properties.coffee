@@ -1,6 +1,6 @@
 {Inflection} = require './support/inflection'
 
-module.exports = 
+module.exports =
   # Creates all of the model properties as defined in the fields
   # Because we need to know when a property is modified, we use
   # setters.
@@ -22,12 +22,13 @@ module.exports =
             @dirtyKeys[field] = true
 
   # Directly read the data for the given attribute
-  readAttribute: (attr) -> @data[attr]
+  readAttribute: (attr) -> @data[attr] || null
 
   # Directly write data to a given attribute, bypassing any attribute filters.
   # Attribute events are still fired.
-  writeAttribute: (attr, value) ->
+  writeAttribute: (attr, value, dirty = true) ->
     @data[attr] = value
+    # @dirtyKeys[attr] = true if dirty?
     @executeAttributeEvent(attr, value)
 
   # Returns an object representing every attribute that has changed, and it's
@@ -38,7 +39,7 @@ module.exports =
     data = {}
     if includePrimary
       data[@primaryKey] = @readAttribute(@primaryKey)
-    
+
     for own key, dirty of @dirtyKeys
       continue unless dirty
       data[key] = @readAttribute(key)

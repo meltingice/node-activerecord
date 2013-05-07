@@ -30,6 +30,7 @@ exports.static =
 
     return @idGenerator
 
+  # TODO: This method is not referenced anymore. Obsolete?
   queryCallback: (err, results, type, cb) ->
     models = array()
     for result in results
@@ -45,7 +46,7 @@ for method in proxyMethods then do (method) ->
     query = new Query(@)
     query[method].apply query, args
 
-exports.members = 
+exports.members =
   save: (cb = ->) ->
     return cb(null) unless @isDirty() or @isNew
 
@@ -74,25 +75,44 @@ exports.members =
   performSave: (cb) ->
     adapter = @constructor.getAdapter()
 
-    if @isNew
-      opts =
+    opts =
         data: @dirtyAttributes()
         table: @tableName()
         id: @readAttribute(@primaryKey)
         primaryKey: @primaryKey
 
+    if @isNew
       adapter.create opts, (err, result) =>
         @saveFinished(err, result, cb)
     else
-      opts =
-        data: @dirtyAttributes()
-        table: @tableName()
-
       adapter.update opts, (err, result) =>
-        @safeFinished(err, result, cb)
+        @saveFinished(err, result, cb)
+
+  delete: (cb = ->) ->
+
+    return cb(null) if @isNew
+
+    @notify 'beforeDelete'
+
+    adapter = @constructor.getAdapter()
+    opts =
+      table: @tableName()
+      primaryKey: @primaryKey
+      data:
+          id: @readAttribute(@primaryKey)
+
+    adapter.delete opts, (err, result) =>
+      throw err if err
+      for field, value of @data
+        @writeAttribute(field, null)
+      @isNew = true
+      @notify 'afterDelete'
+      cb err, result
+
 
   saveFinished: (err, result, cb) ->
+    wasNew = @isNew
     @isNew = false
     @data[key] = val for key, val of result
-
+    @notify if wasNew then 'afterCreate' else 'afterUpdate'
     cb.call(@, err)
